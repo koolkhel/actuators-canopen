@@ -1,0 +1,5 @@
+bool fan1 
+bool fan2 
+bool valve 
+---
+uint8 result

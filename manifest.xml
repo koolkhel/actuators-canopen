@@ -1,0 +1,19 @@
+<package>
+  <description brief="actuators">
+
+     actuators
+
+  </description>
+  <author>Yury Luneff</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/actuators</url>
+  <depend package="roscpp"/>
+  <depend package="std_msgs"/>
+  <depend package="diagnostic_msgs"/>
+  <depend package="geometry_msgs"/>
+  <depend package="diagnostic_updater"/>
+
+</package>
+
+

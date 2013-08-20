@@ -1,0 +1,5 @@
+uint8 rgm 
+uint8 key_n 
+bool[] switch 
+---
+uint8 result
