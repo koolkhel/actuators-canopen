@@ -1,9 +1,11 @@
 /*
- * global.h
+ * model.h
  *
  *  Created on: 03.12.2012
  *      Author: yury
  */
+#pragma once
+
 #include <pthread.h>
 #include <canfestival.h>
 #include "actuators-types.h"

@@ -13,5 +13,8 @@ const indextable * actuators_scanIndexOD (UNS16 wIndex, UNS32 * errorCode, ODCal
 /* Master node data struct */
 extern CO_Data actuators_Data;
 extern INTEGER64 LEFT_MOTOR_209;		/* Mapped at index 0x5000, subindex 0x00*/
+extern INTEGER64 TAIL_ELECTROMOTOR_207;		/* Mapped at index 0x5001, subindex 0x00*/
+extern INTEGER64 TAIL_ELECTROMOTOR_307;		/* Mapped at index 0x5002, subindex 0x00*/
+extern INTEGER64 TAIL_ELECTROMOTOR_407;		/* Mapped at index 0x5003, subindex 0x00*/
 
 #endif // ACTUATORS_H

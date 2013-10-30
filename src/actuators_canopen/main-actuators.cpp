@@ -47,6 +47,11 @@ struct Indigo_OD_Callback callbacks[200];
 			fprintf(stderr, "receiving %s\n", # NAME);\
 		} while(0)
 
+#define RECEIVE_PRINT(VALUE, NAME, SCALE, FORMAT) do {\
+			MODEL.NAME = VALUE; \
+			fprintf(stderr, "receiving " # NAME "value " # FORMAT "\n", MODEL.NAME / SCALE);\
+		} while(0)
+
 #define RECEIVE_ARRAY(VALUE, NAME) do {\
 			memcpy(&MODEL.NAME,&VALUE,sizeof(VALUE)); \
 			fprintf(stderr, "receiving %s\n", # NAME);\
@@ -126,6 +131,7 @@ CALLBACK(0x4003, 0x10) {
 CALLBACK(0x4003, 0x20) {
 	// TOdo many variables
 	DECLARE_M(4003, 20);
+	(void)M;
 }
 
 // PAYLOAD_BLOCK
@@ -135,6 +141,7 @@ CALLBACK(0x4004, 0x10) {
 
 CALLBACK(0x4004, 0x20) {
 	DECLARE_M(4004, 20);
+	(void) M;
 }
 
 // POWER
@@ -161,13 +168,13 @@ CALLBACK(0x4007, 0x10) {
 CALLBACK(0x4007, 0x20) {
 	DECLARE_M(4007, 20);
 
-	RECEIVE(M->left_electromotor_angle_X, left_electromotor_angle_X, 100.0);
-	RECEIVE(M->left_electromotor_angle_Y, left_electromotor_angle_Y, 100.0);
-	RECEIVE(M->left_electromotor_rate, left_electromotor_rate, 1);
+	RECEIVE_PRINT(M->left_electromotor_angle_X, left_electromotor_angle_X, 100.0, "%f");
+	RECEIVE_PRINT(M->left_electromotor_angle_Y, left_electromotor_angle_Y, 100.0, "%f");
+	RECEIVE_PRINT(M->left_electromotor_rate, left_electromotor_rate, 1, "%d");
 
-	RECEIVE(M->right_electromotor_angle_X, right_electromotor_angle_X, 100.0);
-	RECEIVE(M->right_electromotor_angle_Y, right_electromotor_angle_Y, 100.0);
-	RECEIVE(M->right_electromotor_rate, right_electromotor_rate, 1);
+	RECEIVE_PRINT(M->right_electromotor_angle_X, right_electromotor_angle_X, 100.0, "%f");
+	RECEIVE_PRINT(M->right_electromotor_angle_Y, right_electromotor_angle_Y, 100.0, "%f");
+	RECEIVE_PRINT(M->right_electromotor_rate, right_electromotor_rate, 1, "%d");
 }
 
 CALLBACK(0x4007, 0x21) {
@@ -275,7 +282,9 @@ int CallSDOCallback(UNS16 index, UNS8 subindex, UNS8 *data, UNS32 size) {
 	return found;
 }
 
-/* Callback function that check the read SDO demand */
+/* Callback function that check the read SDO demand.
+ *
+ */
 void CheckReadSDO(CO_Data *d, UNS8 nodeid) {
 	UNS32 abortCode;
 	UNS32 size = 64;
@@ -286,7 +295,7 @@ void CheckReadSDO(CO_Data *d, UNS8 nodeid) {
 
 	err = _getIndexSubindex(d, nodeid, &index, &subindex);
 	if (err) {
-		fprintf(error_log, "%ld couldn't find getIndexSubindex for nodeid 0x%hhx index 0x%hx\n", nodeid, index, time(NULL));
+		fprintf(error_log, "%ld couldn't find getIndexSubindex for nodeid 0x%hhx index 0x%hx\n", time(NULL), nodeid, index);
 		goto out;
 	}
 
@@ -318,10 +327,11 @@ struct pollable_OD_entry {
 struct pollable_OD_entry pollable_entries[] = {
 	//	{0x4005, 0x20},
 		{0x7, 0x4007, 0x20, octet_string},
-		{0xa, 0x400a, 0x20, octet_string},
-		{0xb, 0x400b, 0x20, octet_string},
-		{0xc, 0x400c, 0x20, octet_string},
-		{0xd, 0x400d, 0x20, octet_string}
+
+		//{0xa, 0x400a, 0x20, octet_string},
+		//{0xb, 0x400b, 0x20, octet_string},
+		//{0xc, 0x400c, 0x20, octet_string},
+		//{0xd, 0x400d, 0x20, octet_string}
 };
 
 std::queue<int> send_queue_COB;
@@ -370,6 +380,11 @@ void CANopen_shutdown(void) {
 	TimerCleanup();
 }
 
+/**
+ * Возвращает индекс (0x1800 + x) для PDO по его номеру
+ * @param COB
+ * @return
+ */
 UNS8 COBtoPDO(int COB) {
 	return (UNS8) 0;
 }
@@ -383,35 +398,95 @@ void init_model() {
 	pthread_mutex_init(&send_queue_COB_lock, &attr);
 }
 
-void debug_test() {
+union tail_electromotor_307 {
+	struct {
+		uint16_t left_electomotor_rate;
+		uint16_t right_electromotor_rate;
+	};
+	INTEGER64 data;
+};
+
+union tail_electromotor_407 {
+#define DO_FIX 0xAA
+#define NO_FIX 0x55
+	struct {
+		int16_t tail_engine_rotation_Y_angle;
+		int16_t tail_engine_rotation_X_angle;
+		uint8_t tail_engine_rotation_Y_fix;
+		uint8_t tail_engine_rotation_X_fix;
+	};
+	INTEGER64 data;
+};
+
+void start_engine() {
+	// I. START
 	int result = 0;
-	UNS16 index = 0x400b;
-	UNS8 subindex = 0x21;
-	UNS8 datatype = octet_string;
-
-	result = readNetworkDictCallback(&actuators_Data, 0xB, (UNS16) index,
-			(UNS8) subindex, (UNS8) datatype, CheckReadSDO, 1);
-
-	my_sleep(1);
-
-	INTEGER64 data = 6666;
+	INTEGER64 data = 0;
+	((unsigned char *) &data)[0] = 0xAA; // start
 	UNS32 size = sizeof(data);
 	// fill our super variable
-	result = writeLocalDict(&actuators_Data, 0x5000, 0x0, &data, &size, 0);
+	result = writeLocalDict(&actuators_Data, 0x5001, 0x0, &data, &size, 0);
+	sendOnePDOevent(&actuators_Data, 0x1);
+}
 
-	printf("result = 0x%04X\n", result);
-	sendOnePDOevent(&actuators_Data, 0x0);
+void stop_engine() {
+	// IV. STOP
+	int result = 0;
+	INTEGER64 data = 0;
+	((unsigned char *) &data)[0] = 0x55; // start
+	UNS32 size = sizeof(data);
+	// fill our super variable
+	result = writeLocalDict(&actuators_Data, 0x5001, 0x0, &data, &size, 0);
+	sendOnePDOevent(&actuators_Data, 0x1);
+}
 
-	data = 7777;
-	result = writeLocalDict(&actuators_Data, 0x5000, 0x0, &data, &size, 0);
-	sendOnePDOevent(&actuators_Data, 0x0);
+void engine_rate_500() {
+	UNS32 size = 0;
+	int result = 0;
 
-	subindex = 0x20;
-	result = readNetworkDictCallback(&actuators_Data, 0xB, (UNS16) index,
-			(UNS8) subindex, (UNS8) datatype, CheckReadSDO, 1);
+	union tail_electromotor_307 command;
+	command.data = 0;
+
+	command.left_electomotor_rate = 500;
+	command.right_electromotor_rate = 500;
+
+	size = sizeof(command.data);
+	result = writeLocalDict(&actuators_Data, 0x5002, 0x0, &command.data, &size, 0);
+	sendOnePDOevent(&actuators_Data, 0x2);
+}
+
+void engine_angle_minus_80() {
+	UNS32 size = 0;
+	int result = 0;
+	union tail_electromotor_407 rotation;
+	rotation.data = 0;
+
+	size = sizeof(rotation.data);
+	rotation.tail_engine_rotation_Y_angle = -8000;
+	rotation.tail_engine_rotation_X_angle = -8000;
+	result = writeLocalDict(&actuators_Data, 0x5003, 0x0, &rotation.data, &size, 0);
+	sendOnePDOevent(&actuators_Data, 0x3);
+}
+
+void debug_test() {
+	int startstop = 1;
+
+	if (!startstop) {
+		my_sleep(1);
+		// I
+		start_engine();
+		my_sleep(5);
+		// II
+		engine_rate_500();
+		engine_angle_minus_80();
+	} else {
+		// IV
+		stop_engine();
+	}
 
 }
 
+#define DEBUG
 int main(int argc, char **argv) {
 	int result = 0;
 
@@ -426,18 +501,21 @@ int main(int argc, char **argv) {
 
 	init_model();
 
-#if DEBUG
-	debug_test();
-#endif
+#ifdef DEBUG
+		debug_test(); // SEND PDO
+#else
+		// SDO
+		// III
 
 	while (true) {
-		for (int i = 0; i < sizeof(pollable_entries) / sizeof(pollable_entries[0]); i++) {
+		for (unsigned int i = 0; i < sizeof(pollable_entries) / sizeof(pollable_entries[0]); i++) {
 			UNS8 nodeId = pollable_entries[i].nodeId;
 			UNS16 index = pollable_entries[i].index;
 			UNS8 subindex = pollable_entries[i].subindex;
 			UNS8 datatype = pollable_entries[i].datatype;
 
-			result = readNetworkDictCallback(&actuators_Data, 0xB/*nodeId*/,
+			// only one node implemented now
+			result = readNetworkDictCallback(&actuators_Data, 0x7/*nodeId*/,
 					index, subindex, datatype, CheckReadSDO, SDO_USE_BLOCK_MODE);
 			usleep(100);
 		}
@@ -445,7 +523,7 @@ int main(int argc, char **argv) {
 		// some here must be SYNC half period waiting
 		usleep(1000);
 
-		/* drain send queue when appropriate -- maybe at start of SYNC period */
+		/* TODO: drain send queue when appropriate -- maybe at start of SYNC period */
 		while (!send_queue_COB.empty()) {
 			SEND_QUEUE_LOCK();
 			sendOnePDOevent(&actuators_Data, COBtoPDO(send_queue_COB.front()));
@@ -457,9 +535,12 @@ int main(int argc, char **argv) {
 
 	pause();
 
+#endif
+	my_sleep(5);
+
 	CANopen_shutdown();
 
 	fclose(error_log);
 
-	return 0;
+	return result;
 }
