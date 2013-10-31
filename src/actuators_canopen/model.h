@@ -363,13 +363,11 @@ extern struct actuators_model REPORTED_DATA;
 extern struct actuators_model MODEL;
 
 #define LOCK_MODEL() do {\
-	fprintf(stderr, "========= locking model =========\n"); \
 	int result = pthread_mutex_lock(&MODEL_lock);\
 	if (result) {char buf[200]; fprintf(stderr, "mutex lock error: %s\n", strerror_r(result, buf, 200));}; \
 } while (0)
 
 #define UNLOCK_MODEL() do {\
-	fprintf(stderr, "========== unlocking model =============\n");\
 	int result = pthread_mutex_unlock(&MODEL_lock); \
 	if (result) {char buf[200]; fprintf(stderr, "mutex unlock error: %s\n", strerror_r(result, buf, 200));}; \
 } while (0)

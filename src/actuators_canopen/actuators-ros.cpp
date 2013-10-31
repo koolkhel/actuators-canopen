@@ -7,6 +7,8 @@
 #include <ros/ros.h>
 #include <ros/console.h>
 
+#include <signal.h>
+
 #include "actuators-ros.h"
 
 #include "actuators/BallonetState.h"
@@ -27,34 +29,88 @@
 #include "actuators/SwitchHeliumValve.h"
 
 #include "model.h"
-#include "transport.h"
+#include "canopen-data.h"
+#include "canopen-util.h"
 
 static ros::ServiceServer set_motors_control_service;
 static ros::ServiceServer set_left_ballonet_control_service;
 static ros::ServiceServer set_right_ballonet_control_service;
 static ros::ServiceServer switch_helium_valve_service;
 
+static void _set_electromotor_rate(int left_electromotor_rate, int right_electromotor_rate) {
+	UNS32 size = 0;
+	int result = 0;
+
+	union tail_electromotor_307 command;
+	command.data = 0;
+
+	printf("_set_electromotor_rate %h %h\n", left_electromotor_rate, right_electromotor_rate);
+	command.left_electomotor_rate = (uint16_t) left_electromotor_rate;
+	command.right_electromotor_rate = (uint16_t) right_electromotor_rate;
+
+	size = sizeof(command.data);
+	result = writeLocalDict(&actuators_Data, 0x5002, 0x0, &command.data, &size, 0);
+}
+
+static void _set_electromotor_startstop(int startstop) {
+	int result = 0;
+	union tail_electromotor_207 command;
+	command.data = 0;
+	command.startstop = startstop ? ELECTROMOTOR_START : ELECTROMOTOR_STOP; // start
+	UNS32 size = sizeof(command.data);
+	// fill our super variable
+	result = writeLocalDict(&actuators_Data, 0x5001, 0x0, &command.data, &size, 0);
+
+	if (startstop == ELECTROMOTOR_START) {
+		_set_electromotor_rate(500, 500);
+	}
+}
+
+static void _set_electromotor_angle(double left_electromotor_angle_X,
+		double left_electromotor_angle_Y,
+		double right_electromotor_angle_X,
+		double right_electromotor_angle_Y) {
+	UNS32 size = 0;
+	int result = 0;
+
+	union tail_electromotor_407 command;
+	command.data = 0;
+
+	command.tail_engine_rotation_X_angle = (int16_t) left_electromotor_angle_X * 100;
+	command.tail_engine_rotation_Y_angle = (int16_t) left_electromotor_angle_Y * 100;
+
+	size = sizeof(command.data);
+	result = writeLocalDict(&actuators_Data, 0x5003, 0x0, &command.data, &size, 0);
+}
+
 static bool set_motors_control(actuators::SetMotorsControlRequest &req,
 		actuators::SetMotorsControlResponse &resp) {
 	//LOG_TRACE;
+	static int electromotor_engine_on = 0;
+
 
 	ROS_ERROR("i'm motors control");
 
-	//LOCK_MODEL();
-	MODEL.left_electromotor_rate =  req.left_electromotor_rate;
-	MODEL.left_electromotor_angle_X = req.left_electromotors_servo_anglex;
-	MODEL.left_electromotor_angle_Y = req.left_electromotors_servo_angley;
+	if (!electromotor_engine_on) {
+		_set_electromotor_startstop(1);
+		enqueue_PDO(0x1);
+		enqueue_PDO(0x2);
+		electromotor_engine_on = 1;
+	}
 
-	MODEL.right_electromotor_rate =  req.right_electromotor_rate;
-	MODEL.right_electromotor_angle_X = req.right_electromotors_servo_anglex;
-	MODEL.right_electromotor_angle_Y = req.right_electromotors_servo_angley;
-	enqueue_MID(0x2a); // FIXME temporary message for both electromotors
-	MODEL.tail_engine_angle_X = req.left_electromotors_servo_anglex;
-	MODEL.tail_engine_angle_Y = req.left_electromotors_servo_angley;
-	MODEL.tail_engine_rate = req.left_electromotor_rate;
-	MODEL.tail_engine_fix = req.left_electromotors_servo_fix ? MAIN_ENGINE_FIX_FORCE : MAIN_ENGINE_FIX_NONE;
-	// enqueue_MID(0x06); // "tail_engine" aka left engine
+	if (req.left_electromotor_rate < 500)
+		req.left_electromotor_rate = 500;
 
+	if (req.right_electromotor_rate < 500)
+		req.right_electromotor_rate = 500;
+
+	_set_electromotor_rate(req.left_electromotor_rate, req.right_electromotor_rate);
+	enqueue_PDO(0x2);
+	_set_electromotor_angle(req.left_electromotors_servo_anglex, req.left_electromotors_servo_angley,
+			req.right_electromotors_servo_anglex, req.right_electromotors_servo_angley);
+	enqueue_PDO(0x3);
+
+#if 0
 	MODEL.left_main_engine_rate = req.left_engine_rate;
 	switch (MODEL.left_main_engine_rate) {
 	case 0:
@@ -80,41 +136,12 @@ static bool set_motors_control(actuators::SetMotorsControlRequest &req,
 	MODEL.right_main_engine_angle = req.right_engine_servo_angle;
 	enqueue_MID(0x0e); // angle & fix
 	//UNLOCK_MODEL();
-
-#if 0
-	snprintf(buf, 255, "left electromotor rate %f\n", req.left_electromotor_rate);
-	outgoing_queue.push(buf);
-
-	snprintf(buf, 255, "left electromotor anglex %f\n", req.left_electromotors_servo_anglex);
-	outgoing_queue.push(buf);
-
-	snprintf(buf, 255, "left electromotor angley %f\n", req.left_electromotors_servo_angley);
-	outgoing_queue.push(buf);
-
-	snprintf(buf, 255, "right electromotor rate %f\n", req.right_electromotor_rate);
-	outgoing_queue.push(buf);
-
-	snprintf(buf, 255, "right electromotor anglex %f\n", req.right_electromotors_servo_anglex);
-	outgoing_queue.push(buf);
-
-	snprintf(buf, 255, "right electromotor angley %f\n", req.right_electromotors_servo_angley);
-	outgoing_queue.push(buf);
-
-	snprintf(buf, 255, "left engine rate %f\n", req.left_engine_rate);
-	outgoing_queue.push(buf);
-
-	snprintf(buf, 255, "left engine angle %f\n", req.left_engine_servo_angle);
-	outgoing_queue.push(buf);
-
-	snprintf(buf, 255, "right engine rate %f\n", req.right_engine_rate);
-	outgoing_queue.push(buf);
-
-	snprintf(buf, 255, "right engine angle %f\n", req.right_engine_servo_angle);
-	outgoing_queue.push(buf);
 #endif
+
 	return true;
 }
 
+#if 0
 static bool set_left_ballonet_control(actuators::SetBallonetControlRequest &req,
 		actuators::SetBallonetControlResponse &resp) {
 
@@ -133,20 +160,6 @@ static bool set_left_ballonet_control(actuators::SetBallonetControlRequest &req,
 	enqueue_MID(0x1e); // machinery state + many other things
 	// FIXME valve_2?
 	UNLOCK_MODEL();
-
-#if 0
-	snprintf(buf, 255, "left ballonet fan1 %s\n", req.fan1 ? "true" : "false");
-	outgoing_queue.push(buf);
-
-	snprintf(buf, 255, "left ballonet fan2 %s\n", req.fan2 ? "true" : "false");
-	outgoing_queue.push(buf);
-
-	snprintf(buf, 255, "left ballonet valve %s\n", req.valve ? "true" : "false");
-	outgoing_queue.push(buf);
-
-	resp.result = 0;
-
-#endif
 
 	return true;
 }
@@ -168,20 +181,6 @@ static bool set_right_ballonet_control(actuators::SetBallonetControlRequest &req
 	// FIXME valve_2?
 	UNLOCK_MODEL();
 
-#if 0
-	model.ballonets.right.fan1 = req.fan1;
-	snprintf(buf, 255, "right ballonet fan1 %s\n", req.fan1 ? "true" : "false");
-	outgoing_queue.push(buf);
-
-	model.ballonets.right.fan2 = req.fan2;
-	snprintf(buf, 255, "right ballonet fan2 %s\n", req.fan2 ? "true" : "false");
-	outgoing_queue.push(buf);
-
-	model.ballonets.right.valve = req.valve;
-	snprintf(buf, 255, "right ballonet valve %s\n", req.valve ? "true" : "false");
-	outgoing_queue.push(buf);
-#endif
-
 	resp.result = 0;
 
 	return true;
@@ -199,6 +198,7 @@ static bool switch_helium_valve(actuators::SwitchHeliumValveRequest &req,
 	UNLOCK_MODEL();
 	return true;
 }
+#endif
 
 static ros::Publisher leftBallonetStatePublisher;
 static ros::Publisher rightBallonetStatePublisher;
@@ -231,8 +231,8 @@ void report_topics(void) {
 
 	struct actuators_model *model;
 
-	model = &REPORTED_DATA;
-
+	model = &MODEL;
+#if 0
 	leftBallonet.header.stamp = ros::Time::now();
 	LOCK_MODEL();
 	leftBallonet.fan1 = model->left_ballonet_state.ballonet_fan_1;
@@ -271,12 +271,13 @@ void report_topics(void) {
 	/* fixme right is FLOAT right is WORD */
 	rightEngineState.rate = model->right_main_engine_rate;
 	rightEngineStatePublisher.publish(rightEngineState);
-
+#endif
 	actuators::ElectromotorsState electromotorsState;
 
+#if 0
 	actuators::EngineStateExt leftEngineStateExt;
 	actuators::EngineStateExt rightEngineStateExt;
-
+#endif
 	/* dunno how to fill those */
 
 	actuators::ElectromotorState leftElectromotorState;
@@ -292,6 +293,7 @@ void report_topics(void) {
 	rightElectromotorState.rate = model->right_electromotor_rate;
 	rightElectromotorStatePublisher.publish(rightElectromotorState);
 
+#if 0
 	actuators::EngineServoState leftEngineServoState;
 	actuators::EngineServoState rightEngineServoState;
 
@@ -308,6 +310,7 @@ void report_topics(void) {
 	rightEngineServoState.fix = model->right_main_engine_fix == MAIN_ENGINE_FIX_FORCE;
 	UNLOCK_MODEL();
 	rightEngineServoStatePublisher.publish(rightEngineServoState);
+#endif
 
 	actuators::ElectromotorServoState leftElectromotorServoState;
 	actuators::ElectromotorServoState rightElectromotorServoState;
@@ -317,7 +320,7 @@ void report_topics(void) {
 	leftElectromotorServoState.anglex = model->left_electromotor_angle_X;
 	leftElectromotorServoState.angley = model->left_electromotor_angle_Y;
 	/* FIXME IMHO there is no fix for electromotor servos */
-	leftElectromotorServoState.fix = false;;
+	leftElectromotorServoState.fix = false;
 	UNLOCK_MODEL();
 
 	rightElectromotorServoState.header.stamp = ros::Time::now();
@@ -337,8 +340,13 @@ void report_topics(void) {
 	electromotorsStatePublisher.publish(electromotorsState);
 }
 
+extern sig_atomic_t exit_flag;
+
 void *ros_main(void *data) {
 	struct actuators_ros_settings *settings = (struct actuators_ros_settings	 *) data;
+
+	fprintf(stderr, "starting ROS...\n");
+
 	ros::init(settings->argc, settings->argv, "actuators", 0);
 
 	ros::NodeHandle nh;
@@ -367,11 +375,13 @@ void *ros_main(void *data) {
 	electromotorsStatePublisher = nh.advertise<actuators::ElectromotorsState>("/electromotors_state", 10);
 
 	set_motors_control_service = nh.advertiseService("/actuators/set_motors_control", set_motors_control);
+#if 0
 	set_left_ballonet_control_service = nh.advertiseService("/actuators/set_left_ballonet_control", set_left_ballonet_control);
 	set_right_ballonet_control_service = nh.advertiseService("/actuators/set_right_ballonet_control", set_right_ballonet_control);
 	switch_helium_valve_service = nh.advertiseService("/actuators/switch_helium_valve", switch_helium_valve);
+#endif
 
-	while (ros::ok()) {
+	while (ros::ok() && !exit_flag) {
 		report_topics();
 		ros::spinOnce();
 		ros::Duration(0.1).sleep();

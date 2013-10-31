@@ -6,10 +6,13 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include <signal.h>
+
 #include "./actuators.h"
 #include "./model.h"
 #include "./canopen-util.h"
 #include "./canopen-data.h"
+#include "./actuators-ros.h"
 
 #include <assert.h>
 
@@ -18,6 +21,8 @@ static char baudrate[] = "500K";
 
 s_BOARD Board = { "", "" };
 FILE *error_log = NULL;
+
+pthread_t ros_thread;
 
 /**************************** INIT ********************************************/
 void Init(CO_Data *d, UNS32 id) {
@@ -43,12 +48,12 @@ extern pthread_mutex_t MODEL_lock;
 struct Indigo_OD_Callback callbacks[200];
 
 #define RECEIVE(VALUE, NAME, SCALE) do {\
-			MODEL.NAME = VALUE; \
+			MODEL.NAME = VALUE / SCALE; \
 			fprintf(stderr, "receiving %s\n", # NAME);\
 		} while(0)
 
 #define RECEIVE_PRINT(VALUE, NAME, SCALE, FORMAT) do {\
-			MODEL.NAME = VALUE; \
+			MODEL.NAME = VALUE / SCALE; \
 			fprintf(stderr, "receiving " # NAME "value " # FORMAT "\n", MODEL.NAME / SCALE);\
 		} while(0)
 
@@ -326,7 +331,7 @@ struct pollable_OD_entry {
 
 struct pollable_OD_entry pollable_entries[] = {
 	//	{0x4005, 0x20},
-		{0x7, 0x4007, 0x20, octet_string},
+		{0x07, 0x4007, 0x20, octet_string},
 
 		//{0xa, 0x400a, 0x20, octet_string},
 		//{0xb, 0x400b, 0x20, octet_string},
@@ -339,14 +344,6 @@ pthread_mutex_t send_queue_COB_lock;
 
 pthread_mutex_t MODEL_lock;
 pthread_mutex_t REPORTED_DATA_lock;
-
-/* ROS services use this for command mappings */
-void enqueue_COB(int COB) {
-	SEND_QUEUE_LOCK();
-	send_queue_COB.push(COB);
-	SEND_QUEUE_UNLOCK();
-}
-
 
 void CANopen_startup(void) {
 	Board.busname = busname;
@@ -398,97 +395,68 @@ void init_model() {
 	pthread_mutex_init(&send_queue_COB_lock, &attr);
 }
 
-union tail_electromotor_307 {
-	struct {
-		uint16_t left_electomotor_rate;
-		uint16_t right_electromotor_rate;
-	};
-	INTEGER64 data;
-};
-
-union tail_electromotor_407 {
-#define DO_FIX 0xAA
-#define NO_FIX 0x55
-	struct {
-		int16_t tail_engine_rotation_Y_angle;
-		int16_t tail_engine_rotation_X_angle;
-		uint8_t tail_engine_rotation_Y_fix;
-		uint8_t tail_engine_rotation_X_fix;
-	};
-	INTEGER64 data;
-};
-
-void start_engine() {
-	// I. START
-	int result = 0;
-	INTEGER64 data = 0;
-	((unsigned char *) &data)[0] = 0xAA; // start
-	UNS32 size = sizeof(data);
-	// fill our super variable
-	result = writeLocalDict(&actuators_Data, 0x5001, 0x0, &data, &size, 0);
-	sendOnePDOevent(&actuators_Data, 0x1);
-}
-
-void stop_engine() {
-	// IV. STOP
-	int result = 0;
-	INTEGER64 data = 0;
-	((unsigned char *) &data)[0] = 0x55; // start
-	UNS32 size = sizeof(data);
-	// fill our super variable
-	result = writeLocalDict(&actuators_Data, 0x5001, 0x0, &data, &size, 0);
-	sendOnePDOevent(&actuators_Data, 0x1);
-}
 
 void engine_rate_500() {
-	UNS32 size = 0;
-	int result = 0;
-
-	union tail_electromotor_307 command;
-	command.data = 0;
-
-	command.left_electomotor_rate = 500;
-	command.right_electromotor_rate = 500;
-
-	size = sizeof(command.data);
-	result = writeLocalDict(&actuators_Data, 0x5002, 0x0, &command.data, &size, 0);
 	sendOnePDOevent(&actuators_Data, 0x2);
 }
 
 void engine_angle_minus_80() {
-	UNS32 size = 0;
-	int result = 0;
-	union tail_electromotor_407 rotation;
-	rotation.data = 0;
-
-	size = sizeof(rotation.data);
-	rotation.tail_engine_rotation_Y_angle = -8000;
-	rotation.tail_engine_rotation_X_angle = -8000;
-	result = writeLocalDict(&actuators_Data, 0x5003, 0x0, &rotation.data, &size, 0);
 	sendOnePDOevent(&actuators_Data, 0x3);
 }
 
-void debug_test() {
-	int startstop = 1;
-
-	if (!startstop) {
-		my_sleep(1);
-		// I
-		start_engine();
-		my_sleep(5);
-		// II
-		engine_rate_500();
-		engine_angle_minus_80();
-	} else {
-		// IV
-		stop_engine();
-	}
-
+/* ROS services use this for command mappings */
+void enqueue_PDO(int PDO) {
+	SEND_QUEUE_LOCK();
+	send_queue_COB.push(PDO);
+	SEND_QUEUE_UNLOCK();
 }
 
-#define DEBUG
+int _retreive_PDO_queue_entry() {
+	int PDO = 0;
+
+	PDO = send_queue_COB.front();
+	send_queue_COB.pop();
+
+	SEND_QUEUE_UNLOCK();
+
+	return PDO;
+}
+
+void start_ros_thread(int argc, char **argv) {
+	int result;
+
+	static struct actuators_ros_settings settings;
+	settings.argc = argc;
+	settings.argv = argv;
+
+	/* we want SIGINT to be passed to can thread */
+	sigset_t set;
+	sigaddset(&set, SIGINT);
+	result = pthread_sigmask(SIG_UNBLOCK, &set, NULL);
+	if (result) {
+		perror("pthread_sigmask");
+		exit(1);
+	}
+
+	if ((result = pthread_create(&ros_thread, NULL, ros_main, &settings))) {
+		fprintf(stderr, "couldn't create ros thread: %s %d\n", strerror(result), result);
+		exit(1);
+	}
+}
+
+sig_atomic_t exit_flag = 0;
+
+void bye(int signum) {
+	exit_flag = 1;
+}
+
+#undef DEBUG
 int main(int argc, char **argv) {
 	int result = 0;
+
+	fprintf(stderr, "starting actuators\n");
+
+	signal(SIGINT, bye);
 
 	error_log = fopen("error.log", "a");
 	if (!error_log) {
@@ -501,13 +469,15 @@ int main(int argc, char **argv) {
 
 	init_model();
 
+	start_ros_thread(argc, argv);
+
 #ifdef DEBUG
 		debug_test(); // SEND PDO
 #else
 		// SDO
 		// III
 
-	while (true) {
+	while (!exit_flag) {
 		for (unsigned int i = 0; i < sizeof(pollable_entries) / sizeof(pollable_entries[0]); i++) {
 			UNS8 nodeId = pollable_entries[i].nodeId;
 			UNS16 index = pollable_entries[i].index;
@@ -515,30 +485,32 @@ int main(int argc, char **argv) {
 			UNS8 datatype = pollable_entries[i].datatype;
 
 			// only one node implemented now
-			result = readNetworkDictCallback(&actuators_Data, 0x7/*nodeId*/,
+			result = readNetworkDictCallback(&actuators_Data, nodeId /*nodeId*/,
 					index, subindex, datatype, CheckReadSDO, SDO_USE_BLOCK_MODE);
-			usleep(100);
+			usleep(1000);
 		}
 
-		// some here must be SYNC half period waiting
-		usleep(1000);
+		usleep(50 * 1000);
 
 		/* TODO: drain send queue when appropriate -- maybe at start of SYNC period */
+		SEND_QUEUE_LOCK();
 		while (!send_queue_COB.empty()) {
-			SEND_QUEUE_LOCK();
-			sendOnePDOevent(&actuators_Data, COBtoPDO(send_queue_COB.front()));
-			send_queue_COB.pop();
-			SEND_QUEUE_UNLOCK();
+			int PDO_number = _retreive_PDO_queue_entry();
+			printf("QUEUEING PDO 0x%.02x...", PDO_number);
+			int result = sendOnePDOevent(&actuators_Data, PDO_number);
+			printf("%d!\n", result);
 		}
-
+		SEND_QUEUE_UNLOCK();
+		usleep(50 * 1000);
 	}
 
-	pause();
-
 #endif
-	my_sleep(5);
 
 	CANopen_shutdown();
+
+	exit_flag = 1;
+
+	pthread_join(ros_thread, NULL);
 
 	fclose(error_log);
 

@@ -67,7 +67,7 @@ void my_sleep(int seconds);
 
 extern std::queue<int> send_queue_COB;
 extern pthread_mutex_t send_queue_COB_lock;
-void enqueue_COB(int COB);
+void enqueue_PDO(int PDO);
 #define SEND_QUEUE_LOCK() do {\
         pthread_mutex_lock(&send_queue_COB_lock);\
 } while(0)

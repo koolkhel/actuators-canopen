@@ -13,6 +13,35 @@
 // ensure everything is 1 byte aligned
 #pragma pack(push,1)
 
+union tail_electromotor_207 {
+#define ELECTROMOTOR_START 0xAA
+#define ELECTROMOTOR_STOP 0x55
+	struct {
+		uint8_t startstop;
+	};
+	INTEGER64 data;
+};
+
+union tail_electromotor_307 {
+	struct {
+		uint16_t left_electomotor_rate;
+		uint16_t right_electromotor_rate;
+	};
+	INTEGER64 data;
+};
+
+union tail_electromotor_407 {
+#define DO_FIX 0xAA
+#define NO_FIX 0x55
+	struct {
+		int16_t tail_engine_rotation_X_angle;
+		int16_t tail_engine_rotation_Y_angle;
+		uint8_t tail_engine_rotation_X_fix;
+		uint8_t tail_engine_rotation_Y_fix;
+	};
+	INTEGER64 data;
+};
+
 struct data_4002_20 {
 	// p.5.2
 	UNS16 failure_code;
@@ -204,16 +233,17 @@ struct data_4007_20 {
 	UNS16 right_electromotor_rate;
 
 	// / 100
-	INTEGER16 left_electromotor_angle_Y;
-
-	// / 100
-	INTEGER16 right_electromotor_angle_Y;
-
-	// / 100
 	INTEGER16 left_electromotor_angle_X;
 
 	// / 100
 	INTEGER16 right_electromotor_angle_X;
+
+
+	// / 100
+	INTEGER16 left_electromotor_angle_Y;
+
+	// / 100
+	INTEGER16 right_electromotor_angle_Y;
 
 	INTEGER32 reserved;
 };

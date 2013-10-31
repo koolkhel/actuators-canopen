@@ -74,7 +74,7 @@ int main(int argc, char **argv) {
 
 	LoadCanDriver("/usr/local/lib/libcanfestival_can_kvaser.so");
 
-	setNodeId(&emulator_Data, 0xB);
+	setNodeId(&emulator_Data, 0x7);
 
 	for (i = 0; i < callback_no; i++) {
 		RegisterSetODentryCallBack(&emulator_Data, callbacks[i].index, 0, callbacks[i].callback_fn);
