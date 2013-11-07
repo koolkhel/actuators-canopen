@@ -1,0 +1,14 @@
+uint8 ON = 170
+uint8 OFF = 85
+uint8 NEUTRAL = 10
+
+uint8 ignition1
+uint8 ignition2
+uint8 servo
+uint8 magnetic_valve
+uint8 ECU
+uint8 electromotor_start
+uint8 aux_fuel_pump
+uint8 main_fuel_pump
+---
+uint8 res

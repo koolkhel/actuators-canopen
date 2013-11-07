@@ -1,12 +1,19 @@
+byte ENGINES_CONTROL_MODE_RATE = 0
+byte ENGINES_CONTROL_MODE_THTROTTLE = 1
+
+# rate or thtrottle
+byte left_engine_control_regime
 # Setting the rotational speed of the left main engine
-float32 left_engine_rate
+float32 left_engine_control
 # Setting the angle of rotation of the left main engine
 float32 left_engine_servo_angle
 # Set point fixation of the left rotator flight engine
 bool left_engine_servo_fix
 
+# rate or thtrottle
+byte right_engine_control_regime
 # Setting the rotational speed of the right main engine
-float32 right_engine_rate
+float32 right_engine_control
 # Setting the rotation angle of the right main engine
 float32 right_engine_servo_angle
 # Setting the right fixing rotator flight engine

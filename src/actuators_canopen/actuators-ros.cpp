@@ -24,18 +24,264 @@
 #include "actuators/EngineServoState.h"
 #include "actuators/EngineServoStateExt.h"
 
+#include "actuators/StartEngine.h"
+#include "actuators/StopEngine.h"
+
+#include "actuators/SetEngineRelayState.h"
 #include "actuators/SetMotorsControl.h"
 #include "actuators/SetBallonetControl.h"
+#include "actuators/SetElectromotorsOnOff.h"
 #include "actuators/SwitchHeliumValve.h"
+#include "actuators/BallonetRegime.h"
+#include "actuators/SetBallonetRegime.h"
+#include "actuators/SetBallonetAutomaticControlParameters.h"
+#include "actuators/SetGeneratorControl.h"
+#include "actuators/SetPowerRelay.h"
+
+#include "actuators/BatteryBackupState.h"
+#include "actuators/BatteryFailsafeState.h"
+#include "actuators/PowerDistributionLineFailure.h"
+#include "actuators/PowerDistributionRelayState.h"
+
+#include "actuators/PowerSystemState.h"
 
 #include "model.h"
 #include "canopen-data.h"
 #include "canopen-util.h"
 
+static ros::ServiceServer start_left_engine_service;
+static ros::ServiceServer stop_left_engine_service;
+static ros::ServiceServer set_left_engine_relay_state_service;
+
+static ros::ServiceServer set_power_relay_service;
+static ros::ServiceServer set_generator_control_service;
+
+static ros::ServiceServer start_right_engine_service;
+static ros::ServiceServer stop_right_engine_service;
+static ros::ServiceServer set_right_engine_relay_state_service;
+
 static ros::ServiceServer set_motors_control_service;
+static ros::ServiceServer set_tail_electromotor_onoff_service;
+
+static ros::ServiceServer set_left_ballonet_regime_service;
+static ros::ServiceServer set_left_ballonet_automatic_control_parameters_service;
 static ros::ServiceServer set_left_ballonet_control_service;
+
+static ros::ServiceServer set_right_ballonet_regime_service;
+static ros::ServiceServer set_right_ballonet_automatic_control_parameters_service;
 static ros::ServiceServer set_right_ballonet_control_service;
+
 static ros::ServiceServer switch_helium_valve_service;
+
+static void set_left_ballonet_upper_pressure(UNS32 left_ballonet_upper_pressure_threshold,
+		UNS32 left_ballonet_upper_pressure_delta) {
+	UNS32 size = 0;
+	int result = 0;
+
+	union left_ballonet_20c command;
+	command.data = 0;
+	command.left_ballonet_upper_pressure_threshold = (UNS16) left_ballonet_upper_pressure_threshold;
+	command.left_ballonet_upper_pressure_delta = (UNS16) left_ballonet_upper_pressure_delta;
+
+	size = sizeof(command.data);
+	result = writeLocalDict(&actuators_Data, 0x5004, 0x0, &command.data, &size, 0);
+
+}
+
+static void set_left_ballonet_lower_pressure(UNS32 left_ballonet_lower_pressure_threshold,
+		UNS32 left_ballonet_lower_pressure_delta) {
+	UNS32 size = 0;
+	int result = 0;
+
+	union left_ballonet_30c command;
+	command.data = 0;
+	command.left_ballonet_lower_pressure_threshold = (UNS16) left_ballonet_lower_pressure_threshold;
+	command.left_ballonet_lower_pressure_delta = (UNS16) left_ballonet_lower_pressure_delta;
+
+
+	size = sizeof(command.data);
+	result = writeLocalDict(&actuators_Data, 0x5005, 0x0, &command.data, &size, 0);
+
+}
+
+static void _set_left_ballonet_control(UNS8 fan1, UNS8 fan2, UNS8 valve, UNS8 light) {
+	UNS32 size = 0;
+	int result = 0;
+
+	union left_ballonet_40c command;
+	command.data = 0;
+	command.left_ballonet_fan1 = fan1 ? 0xAA : 0x55;
+	command.left_ballonet_fan2 = fan2 ? 0xAA : 0x55;
+	command.left_ballonet_valve = valve ? 0xAA : 0x55;
+	command.left_ballonet_light = light ? 0xAA : 0x55;
+
+	size = sizeof(command.data);
+	result = writeLocalDict(&actuators_Data, 0x5006, 0x0, &command.data, &size, 0);
+}
+
+static bool set_left_ballonet_control(actuators::SetBallonetControlRequest &req, actuators::SetBallonetControlResponse &resp) {
+
+	ROS_ERROR("set_left_ballonet_control: %hhu %hhu %hhu %hhu", req.fan1, req.fan2, req.valve, req.light);
+
+	_set_left_ballonet_control(req.fan1, req.fan2, req.valve, req.light);
+
+	enqueue_PDO(0x6);
+	return true;
+}
+
+static bool set_left_ballonet_regime(actuators::SetBallonetRegimeRequest &req,
+		actuators::SetBallonetRegimeResponse &resp) {
+	UNS32 size = 0;
+	int result = 0;
+
+	union left_ballonet_50c command;
+	command.data = 0;
+
+	ROS_ERROR("set_left_ballonet_regime: %s", req.regime.regime ? "automatic" : "manual");
+
+	switch (req.regime.regime) {
+	case 0:
+		command.regime = 0x51;
+		break;
+	case 1:
+		command.regime = 0x61;
+		break;
+	}
+
+	size = sizeof(command.data);
+	result = writeLocalDict(&actuators_Data, 0x5007, 0x0, &command.data, &size, 0);
+	enqueue_PDO(0x7);
+
+	return true;
+}
+
+static bool set_left_ballonet_automatic_control_parameters(
+		actuators::SetBallonetAutomaticControlParametersRequest &req,
+		actuators::SetBallonetAutomaticControlParametersResponse &response) {
+
+	ROS_ERROR("set_left_ballonet_automatic_control_parameters: %d %d %d %d",
+			req.ballonet_upper_pressure_threshold,
+			req.ballonet_upper_pressure_delta,
+			req.ballonet_lower_pressure_threshold,
+			req.ballonet_lower_pressure_delta);
+
+	set_left_ballonet_upper_pressure(req.ballonet_upper_pressure_threshold,
+			req.ballonet_upper_pressure_delta);
+
+	enqueue_PDO(0x4);
+
+	set_left_ballonet_lower_pressure(req.ballonet_lower_pressure_threshold,
+				req.ballonet_lower_pressure_delta);
+
+	enqueue_PDO(0x5);
+
+	return true;
+}
+
+static void set_right_ballonet_upper_pressure(UNS32 right_ballonet_upper_pressure_threshold,
+		UNS32 right_ballonet_upper_pressure_delta) {
+	UNS32 size = 0;
+	int result = 0;
+
+	union right_ballonet_20d command;
+	command.data = 0;
+	command.right_ballonet_upper_pressure_threshold = (UNS16) right_ballonet_upper_pressure_threshold;
+	command.right_ballonet_upper_pressure_delta = (UNS16) right_ballonet_upper_pressure_delta;
+
+	size = sizeof(command.data);
+	result = writeLocalDict(&actuators_Data, 0x5008, 0x0, &command.data, &size, 0);
+
+}
+
+static void set_right_ballonet_lower_pressure(UNS32 right_ballonet_lower_pressure_threshold,
+		UNS32 right_ballonet_lower_pressure_delta) {
+	UNS32 size = 0;
+	int result = 0;
+
+	union right_ballonet_30d command;
+	command.data = 0;
+	command.right_ballonet_lower_pressure_threshold = (UNS16) right_ballonet_lower_pressure_threshold;
+	command.right_ballonet_lower_pressure_delta = (UNS16) right_ballonet_lower_pressure_delta;
+
+
+	size = sizeof(command.data);
+	result = writeLocalDict(&actuators_Data, 0x5009, 0x0, &command.data, &size, 0);
+
+}
+
+static void _set_right_ballonet_control(UNS8 fan1, UNS8 fan2, UNS8 valve, UNS8 light) {
+	UNS32 size = 0;
+	int result = 0;
+
+	union right_ballonet_40d command;
+	command.data = 0;
+	command.right_ballonet_fan1 = fan1 ? 0xAA : 0x55;
+	command.right_ballonet_fan2 = fan2 ? 0xAA : 0x55;
+	command.right_ballonet_valve = valve ? 0xAA : 0x55;
+	command.right_ballonet_light = light ? 0xAA : 0x55;
+
+	size = sizeof(command.data);
+	result = writeLocalDict(&actuators_Data, 0x500a, 0x0, &command.data, &size, 0);
+}
+
+static bool set_right_ballonet_control(actuators::SetBallonetControlRequest &req, actuators::SetBallonetControlResponse &resp) {
+
+	ROS_ERROR("set_right_ballonet_control: %hhu %hhu %hhu %hhu", req.fan1, req.fan2, req.valve, req.light);
+
+	_set_right_ballonet_control(req.fan1, req.fan2, req.valve, req.light);
+
+	enqueue_PDO(0x0A);
+	return true;
+}
+
+static bool set_right_ballonet_regime(actuators::SetBallonetRegimeRequest &req,
+		actuators::SetBallonetRegimeResponse &resp) {
+	UNS32 size = 0;
+	int result = 0;
+
+	union right_ballonet_50d command;
+	command.data = 0;
+
+	ROS_ERROR("set_right_ballonet_regime: %s", req.regime.regime ? "automatic" : "manual");
+
+	switch (req.regime.regime) {
+	case 0:
+		command.regime = 0x51;
+		break;
+	case 1:
+		command.regime = 0x61;
+		break;
+	}
+
+	size = sizeof(command.data);
+	result = writeLocalDict(&actuators_Data, 0x500b, 0x0, &command.data, &size, 0);
+	enqueue_PDO(0x0B);
+
+	return true;
+}
+
+static bool set_right_ballonet_automatic_control_parameters(
+		actuators::SetBallonetAutomaticControlParametersRequest &req,
+		actuators::SetBallonetAutomaticControlParametersResponse &response) {
+
+	ROS_ERROR("set_right_ballonet_automatic_control_parameters: %d %d %d %d",
+			req.ballonet_upper_pressure_threshold,
+			req.ballonet_upper_pressure_delta,
+			req.ballonet_lower_pressure_threshold,
+			req.ballonet_lower_pressure_delta);
+
+	set_right_ballonet_upper_pressure(req.ballonet_upper_pressure_threshold,
+			req.ballonet_upper_pressure_delta);
+
+	enqueue_PDO(0x08);
+
+	set_right_ballonet_lower_pressure(req.ballonet_lower_pressure_threshold,
+				req.ballonet_lower_pressure_delta);
+
+	enqueue_PDO(0x09);
+
+	return true;
+}
 
 static void _set_electromotor_rate(int left_electromotor_rate, int right_electromotor_rate) {
 	UNS32 size = 0;
@@ -44,7 +290,7 @@ static void _set_electromotor_rate(int left_electromotor_rate, int right_electro
 	union tail_electromotor_307 command;
 	command.data = 0;
 
-	printf("_set_electromotor_rate %h %h\n", left_electromotor_rate, right_electromotor_rate);
+	ROS_ERROR("_set_electromotor_rate %hd %hd\n", left_electromotor_rate, right_electromotor_rate);
 	command.left_electomotor_rate = (uint16_t) left_electromotor_rate;
 	command.right_electromotor_rate = (uint16_t) right_electromotor_rate;
 
@@ -52,18 +298,17 @@ static void _set_electromotor_rate(int left_electromotor_rate, int right_electro
 	result = writeLocalDict(&actuators_Data, 0x5002, 0x0, &command.data, &size, 0);
 }
 
-static void _set_electromotor_startstop(int startstop) {
+static void _set_electromotor_startstop(int left_startstop, int right_startstop) {
 	int result = 0;
 	union tail_electromotor_207 command;
 	command.data = 0;
-	command.startstop = startstop ? ELECTROMOTOR_START : ELECTROMOTOR_STOP; // start
+
+	command.left_electromotor_startstop = left_startstop ? ELECTROMOTOR_START : ELECTROMOTOR_STOP; // start
+	command.right_electromotor_startstop = right_startstop ? ELECTROMOTOR_START : ELECTROMOTOR_STOP; // start
+
 	UNS32 size = sizeof(command.data);
 	// fill our super variable
 	result = writeLocalDict(&actuators_Data, 0x5001, 0x0, &command.data, &size, 0);
-
-	if (startstop == ELECTROMOTOR_START) {
-		_set_electromotor_rate(500, 500);
-	}
 }
 
 static void _set_electromotor_angle(double left_electromotor_angle_X,
@@ -76,11 +321,331 @@ static void _set_electromotor_angle(double left_electromotor_angle_X,
 	union tail_electromotor_407 command;
 	command.data = 0;
 
+	ROS_ERROR("_set_electromotor_angle %f %f %f %f", left_electromotor_angle_X, left_electromotor_angle_Y, right_electromotor_angle_X, right_electromotor_angle_Y);
 	command.tail_engine_rotation_X_angle = (int16_t) left_electromotor_angle_X * 100;
 	command.tail_engine_rotation_Y_angle = (int16_t) left_electromotor_angle_Y * 100;
 
 	size = sizeof(command.data);
 	result = writeLocalDict(&actuators_Data, 0x5003, 0x0, &command.data, &size, 0);
+}
+
+bool set_left_main_engine_relay_state(actuators::SetEngineRelayStateRequest &request, actuators::SetEngineRelayStateResponse &resp) {
+	UNS32 size = 0;
+	int result = 0;
+
+	union left_main_engine_312 command;
+	command.data = 0;
+
+	ROS_ERROR("_set_left_main_engine_relay_state "
+			"ECU %hhu AUX FUEL %hhu ELECTROMOTOR_START %hhu IGNITION1 %hhu IGNITION2 %hhu MAGNETIC_VALVE %hhu MAIN_FUEL_PUMP %hhu SERVO %hhu",
+			request.ECU,
+			request.aux_fuel_pump,
+			request.electromotor_start,
+			request.ignition1,
+			request.ignition2,
+			request.magnetic_valve,
+			request.main_fuel_pump,
+			request.servo
+			);
+
+	command.control.ECU = request.ECU;
+	command.control.aux_fuel_pump = request.aux_fuel_pump;
+	command.control.electromotor_start = request.electromotor_start;
+	command.control.ignition_1 = request.ignition1;
+	command.control.ignition_2 = request.ignition2;
+	command.control.magnetic_valve = request.magnetic_valve;
+	command.control.main_fuel_pump = request.main_fuel_pump;
+	command.control.servo = request.servo;
+
+	size = sizeof(command.data);
+	result = writeLocalDict(&actuators_Data, 0x5014, 0x0, &command.data, &size, 0);
+	enqueue_PDO(0x14);
+
+	return true;
+}
+
+bool set_right_main_engine_relay_state(actuators::SetEngineRelayStateRequest &request, actuators::SetEngineRelayStateResponse &resp) {
+	UNS32 size = 0;
+	int result = 0;
+
+	union right_main_engine_313 command;
+	command.data = 0;
+
+	ROS_ERROR("_set_right_main_engine_relay_state "
+			"ECU %hhu AUX FUEL %hhu ELECTROMOTOR_START %hhu IGNITION1 %hhu IGNITION2 %hhu MAGNETIC_VALVE %hhu MAIN_FUEL_PUMP %hhu SERVO %hhu",
+			request.ECU,
+			request.aux_fuel_pump,
+			request.electromotor_start,
+			request.ignition1,
+			request.ignition2,
+			request.magnetic_valve,
+			request.main_fuel_pump,
+			request.servo
+			);
+
+	command.control.ECU = request.ECU;
+	command.control.aux_fuel_pump = request.aux_fuel_pump;
+	command.control.electromotor_start = request.electromotor_start;
+	command.control.ignition_1 = request.ignition1;
+	command.control.ignition_2 = request.ignition2;
+	command.control.magnetic_valve = request.magnetic_valve;
+	command.control.main_fuel_pump = request.main_fuel_pump;
+	command.control.servo = request.servo;
+
+	size = sizeof(command.data);
+	result = writeLocalDict(&actuators_Data, 0x5015, 0x0, &command.data, &size, 0);
+	enqueue_PDO(0x15);
+
+	return true;
+}
+
+static void _set_left_main_engine_rotation_angle(float angle) {
+	UNS32 size = 0;
+	int result = 0;
+
+	union left_main_engine_rotation_20A command;
+	command.data = 0;
+
+	ROS_ERROR("_set_left_main_engine_rotation_angle %f", angle);
+	command.left_main_engine_rotation_angle = (int16_t) angle * 100;
+
+	size = sizeof(command.data);
+	result = writeLocalDict(&actuators_Data, 0x500E, 0x0, &command.data, &size, 0);
+}
+
+static void _set_right_main_engine_rotation_angle(float angle) {
+	UNS32 size = 0;
+	int result = 0;
+
+	union right_main_engine_rotation_20B command;
+	command.data = 0;
+
+	ROS_ERROR("_set_right_main_engine_rotation_angle %f", angle);
+	command.right_main_engine_rotation_angle = (int16_t) angle * 100;
+
+	size = sizeof(command.data);
+	result = writeLocalDict(&actuators_Data, 0x500F, 0x0, &command.data, &size, 0);
+}
+
+static bool set_electromotor_onoff(actuators::SetElectromotorsOnOffRequest &request, actuators::SetElectromotorsOnOffResponse &response) {
+
+	ROS_ERROR("_set_electromotor_startstop %hhd %hhd", request.left_electromotor_on, request.right_electromotor_on);
+
+	_set_electromotor_startstop(request.left_electromotor_on, request.right_electromotor_on);
+	enqueue_PDO(0x1);
+
+	return true;
+}
+
+static bool start_left_engine(actuators::StartEngineRequest &request, actuators::StartEngineResponse &response) {
+	UNS32 size = 0;
+	int result = 0;
+
+	union left_main_engine_208_request command;
+	command.data = 0;
+
+	ROS_ERROR("_start_left_engine");
+	command.start_stop = (uint8_t) 0xA0;
+
+	size = sizeof(command.data);
+	result = writeLocalDict(&actuators_Data, 0x5010, 0x0, &command.data, &size, 0);
+	enqueue_PDO(0x10);
+
+	return true;
+}
+
+
+static bool stop_left_engine(actuators::StopEngineRequest &request, actuators::StopEngineResponse &response) {
+	UNS32 size = 0;
+	int result = 0;
+
+	union left_main_engine_208_request command;
+	command.data = 0;
+
+	ROS_ERROR("_stop_left_engine");
+	command.start_stop = (uint8_t) 0x55;
+
+	size = sizeof(command.data);
+	result = writeLocalDict(&actuators_Data, 0x5010, 0x0, &command.data, &size, 0);
+	enqueue_PDO(0x10);
+
+	return true;
+}
+
+static bool start_right_engine(actuators::StartEngineRequest &request, actuators::StartEngineResponse &response) {
+	UNS32 size = 0;
+	int result = 0;
+
+	union right_main_engine_209_request command;
+	command.data = 0;
+
+	ROS_ERROR("_start_right_engine");
+	command.start_stop = (uint8_t) 0xA0;
+
+	size = sizeof(command.data);
+	result = writeLocalDict(&actuators_Data, 0x5011, 0x0, &command.data, &size, 0);
+	enqueue_PDO(0x11);
+
+	return true;
+}
+
+static bool stop_right_engine(actuators::StopEngineRequest &request, actuators::StopEngineResponse &response) {
+	UNS32 size = 0;
+	int result = 0;
+
+	union right_main_engine_209_request command;
+	command.data = 0;
+
+	ROS_ERROR("_stop_right_engine");
+	command.start_stop = (uint8_t) 0x55;
+
+	size = sizeof(command.data);
+	result = writeLocalDict(&actuators_Data, 0x5011, 0x0, &command.data, &size, 0);
+	enqueue_PDO(0x11);
+
+	return true;
+}
+
+static void _set_left_motor_control(uint8_t control_regime, float control) {
+	UNS32 size = 0;
+	int result = 0;
+
+	union left_main_engine_308 command;
+	command.data = 0;
+
+	ROS_ERROR("_set_left_motor_control %hhd %s %f", control_regime, control_regime ? "throttle" : "rate", control);
+	switch (control_regime) {
+	case 0: // RATE
+		command.regime = 0xAA;
+		command.rate = (UNS16) control;
+		break;
+	case 1: // THROTTLE
+		command.regime = 0x55;
+		command.throttle = (UNS16) control * 10.0;
+		break;
+	}
+
+	size = sizeof(command.data);
+	result = writeLocalDict(&actuators_Data, 0x5012, 0x0, &command.data, &size, 0);
+}
+
+static void _set_right_motor_control(uint8_t control_regime, float control) {
+	UNS32 size = 0;
+	int result = 0;
+
+	union right_main_engine_309 command;
+	command.data = 0;
+
+	ROS_ERROR("_set_right_motor_control %hhd %s %f", control_regime, control_regime ? "throttle" : "rate", control);
+	switch (control_regime) {
+	case 0: // RATE
+		command.regime = 0xAA;
+		command.rate = (UNS16) control;
+		break;
+	case 1: // THROTTLE
+		command.regime = 0x55;
+		command.throttle = (UNS16) control * 10.0;
+		break;
+	}
+
+	size = sizeof(command.data);
+	result = writeLocalDict(&actuators_Data, 0x5013, 0x0, &command.data, &size, 0);
+}
+
+bool set_generator_control(actuators::SetGeneratorControlRequest &request, actuators::SetGeneratorControlResponse &response) {
+	UNS32 size = 0;
+	int result = 0;
+
+	union generator_205 command;
+	command.data = 0;
+
+	ROS_ERROR("set_generator_control %hhd %hhd", request.left_generator_start, request.right_generator_start);
+	switch (request.left_generator_start) {
+	case 0:
+		command.left_generator_start = 0xb1;
+		break;
+	case 1:
+		command.left_generator_start = 0xa1;
+		break;
+	}
+
+	switch (request.right_generator_start) {
+	case 0:
+		command.right_generator_start = 0xb1;
+		break;
+	case 1:
+		command.right_generator_start = 0xa1;
+		break;
+	}
+
+	size = sizeof(command.data);
+	result = writeLocalDict(&actuators_Data, 0x5017, 0x0, &command.data, &size, 0);
+	enqueue_PDO(0x17);
+
+	return true;
+}
+
+UNS8 flag_helper(uint8_t flag) {
+	if (flag == 0)
+		return 0x5;
+
+	if (flag == 1)
+		return 0xA;
+
+	return 0x0;
+}
+
+bool set_power_relay(actuators::SetPowerRelayRequest &request, actuators::SetPowerRelayResponse &response) {
+	UNS32 size = 0;
+	int result = 0;
+
+	union power_distribution_relay_305 command;
+	command.data = 0;
+
+	ROS_ERROR("set_power_relay CONTROL_TYPE %hhd BACKUP_AND_FAILSAFE %hhd BOTTOM_SIGNAL_LIGHTS %hhd TOP_SIGNAL_LIGHTS %hhd LEFT_POWER_EQUIPMENT %hhd "
+			"RIGHT_POWER_EQUIPMENT %hhd LEFT_PRESSURE_CONTROL %hhd RIGHT_PRESSURE_CONTROL %hhd LOAD_POWER %hhd TAIL_270v %hhd TAIL_28v %hhd ",
+			request.control_type,
+			request.backup_and_failsafe_battery,
+			request.bottom_signal_lights,
+			request.top_signal_lights,
+			request.left_power_equipment,
+			request.right_power_equipment,
+			request.left_pressure_control,
+			request.right_pressure_control,
+			request.load_power,
+			request.tail_270v_power_distribution,
+			request.tail_28v_power_distribution
+	);
+
+	switch (request.control_type) {
+	case 0:
+		command.control_type = 0xAF; // automatic
+		break;
+	case 1:
+		command.control_type = 0xBF; // manual
+		break;
+	}
+
+	command.backup_and_failsafe_battery = flag_helper(request.backup_and_failsafe_battery);
+	command.bottom_signal_lights = flag_helper(request.bottom_signal_lights);
+
+	command.left_power_equipment = flag_helper(request.left_power_equipment);
+	command.right_power_equipment = flag_helper(request.right_power_equipment);
+
+	command.left_pressure_control = flag_helper(request.left_pressure_control);
+	command.right_pressure_control = flag_helper(request.right_pressure_control);
+
+	command.load_power = flag_helper(request.load_power);
+	command.top_signal_lights = flag_helper(request.top_signal_lights);
+
+	command.tail_270v_power_distribution = flag_helper(request.tail_270v_power_distribution);
+	command.tail_28v_power_distribution = flag_helper(request.tail_28v_power_distribution);
+
+	size = sizeof(command.data);
+	result = writeLocalDict(&actuators_Data, 0x5016, 0x0, &command.data, &size, 0);
+	enqueue_PDO(0x16);
+
+	return true;
 }
 
 static bool set_motors_control(actuators::SetMotorsControlRequest &req,
@@ -91,24 +656,23 @@ static bool set_motors_control(actuators::SetMotorsControlRequest &req,
 
 	ROS_ERROR("i'm motors control");
 
-	if (!electromotor_engine_on) {
-		_set_electromotor_startstop(1);
-		enqueue_PDO(0x1);
-		enqueue_PDO(0x2);
-		electromotor_engine_on = 1;
-	}
-
-	if (req.left_electromotor_rate < 500)
-		req.left_electromotor_rate = 500;
-
-	if (req.right_electromotor_rate < 500)
-		req.right_electromotor_rate = 500;
-
 	_set_electromotor_rate(req.left_electromotor_rate, req.right_electromotor_rate);
 	enqueue_PDO(0x2);
 	_set_electromotor_angle(req.left_electromotors_servo_anglex, req.left_electromotors_servo_angley,
 			req.right_electromotors_servo_anglex, req.right_electromotors_servo_angley);
 	enqueue_PDO(0x3);
+
+	_set_left_main_engine_rotation_angle(req.left_engine_servo_angle);
+	enqueue_PDO(0x0E);
+	_set_right_main_engine_rotation_angle(req.right_engine_servo_angle);
+	enqueue_PDO(0x0F);
+
+	_set_left_motor_control(req.left_engine_control_regime, req.left_engine_control);
+	enqueue_PDO(0x12);
+
+	_set_right_motor_control(req.right_engine_control_regime, req.right_engine_control);
+	enqueue_PDO(0x13);
+
 
 #if 0
 	MODEL.left_main_engine_rate = req.left_engine_rate;
@@ -141,64 +705,12 @@ static bool set_motors_control(actuators::SetMotorsControlRequest &req,
 	return true;
 }
 
-#if 0
-static bool set_left_ballonet_control(actuators::SetBallonetControlRequest &req,
-		actuators::SetBallonetControlResponse &resp) {
-
-//	LOG_TRACE;
-
-	ROS_ERROR("i'm left ballonet control");
-
-	LOCK_MODEL();
-	MODEL.left_ballonet_state.ballonet_fan_1 =
-			(ballonet_command) req.fan1 ?
-			COMMAND_BALLONET_FORCE_OPEN : COMMAND_BALLONET_FORCE_CLOSE;
-	MODEL.left_ballonet_state.ballonet_fan_2 = (ballonet_command) req.fan2 ?
-			COMMAND_BALLONET_FORCE_OPEN : COMMAND_BALLONET_FORCE_CLOSE;
-	MODEL.left_ballonet_state.ballonet_valve_1 = (ballonet_command) req.valve ?
-			COMMAND_BALLONET_FORCE_OPEN : COMMAND_BALLONET_FORCE_CLOSE;
-	enqueue_MID(0x1e); // machinery state + many other things
-	// FIXME valve_2?
-	UNLOCK_MODEL();
-
-	return true;
-}
-
-static bool set_right_ballonet_control(actuators::SetBallonetControlRequest &req,
-		actuators::SetBallonetControlResponse &resp) {
-	//LOG_TRACE;
-
-	ROS_ERROR("i'm right ballonet control");
-
-	LOCK_MODEL();
-	MODEL.right_ballonet_state.ballonet_fan_1 = (ballonet_command) req.fan1 ? COMMAND_BALLONET_FORCE_OPEN :
-			COMMAND_BALLONET_FORCE_CLOSE;
-	MODEL.right_ballonet_state.ballonet_fan_2 = (ballonet_command) req.fan2 ? COMMAND_BALLONET_FORCE_OPEN :
-			COMMAND_BALLONET_FORCE_CLOSE;
-	MODEL.right_ballonet_state.ballonet_valve_1 = (ballonet_command) req.valve ? COMMAND_BALLONET_FORCE_OPEN :
-			COMMAND_BALLONET_FORCE_CLOSE;
-	enqueue_MID(0x22);
-	// FIXME valve_2?
-	UNLOCK_MODEL();
-
-	resp.result = 0;
-
-	return true;
-}
-
-static bool switch_helium_valve(actuators::SwitchHeliumValveRequest &req,
-		actuators::SwitchHeliumValveResponse &resp) {
-
-	LOCK_MODEL();
-
-	MODEL.left_ballonet_state.ballonet_valve_2 = req.open ?
-			COMMAND_BALLONET_FORCE_OPEN :COMMAND_BALLONET_FORCE_CLOSE;
-	enqueue_MID(0x1e);
-
-	UNLOCK_MODEL();
-	return true;
-}
-#endif
+/**************************************************************************
+ *
+ *       T           O           P          I          C           S
+ *
+ **************************************************************************
+ */
 
 static ros::Publisher leftBallonetStatePublisher;
 static ros::Publisher rightBallonetStatePublisher;
@@ -222,42 +734,361 @@ static ros::Publisher leftEngineServoStateExtPublisher;
 static ros::Publisher rightEngineServoStateExtPublisher;
 
 static ros::Publisher electromotorsStatePublisher;
+static ros::Publisher electromotorsStateExtPublisher;
+
+static ros::Publisher powerSystemStatePublisher;
+
+actuators::EngineState getLeftMainEngineState(struct actuators_model *model) {
+	actuators::EngineState engineState;
+	actuators::EngineStateExt engineStateExt;
+
+	engineState.header.stamp = ros::Time::now();
+	LOCK_MODEL();
+	engineState.cylinder_temperature1 = model->left_main_engine_cylinder_1_temperature;
+	engineState.cylinder_temperature2 = model->left_main_engine_cylinder_2_temperature;
+	engineState.exhaust_gas_temperature = model->left_main_engine_exhaust_temperature;
+	engineState.fuel_level_main_tank = model->left_main_engine_fuel_level;
+	engineState.fuel_level_aux_tank = model->left_main_engine_aux_fuel_level;
+	engineState.throttle1_angle = model->left_main_engine_throttle_1_angle;
+	engineState.throttle2_angle = model->left_main_engine_throttle_2_angle;
+	engineState.rate = model->left_main_engine_rate;
+
+	engineStateExt.header.stamp = ros::Time::now();
+	engineStateExt.ECU = model->left_main_engine_relay_state.ECU;
+	engineStateExt.aux_fuel_pump = model->left_main_engine_relay_state.aux_fuel_pump;
+	engineStateExt.electromotor_start = model->left_main_engine_relay_state.electromotor_start;
+	engineStateExt.ignition_1 = model->left_main_engine_relay_state.ignition_1;
+	engineStateExt.ignition_2 = model->left_main_engine_relay_state.ignition_2;
+	engineStateExt.magnetic_valve = model->left_main_engine_relay_state.magnetic_valve;
+	engineStateExt.main_fuel_pump = model->left_main_engine_relay_state.main_fuel_pump;
+	engineStateExt.servo = model->left_main_engine_relay_state.servo;
+
+	engineState.relay_state = engineStateExt;
+	UNLOCK_MODEL();
+
+	return engineState;
+}
+
+actuators::EngineState getRightMainEngineState(struct actuators_model *model) {
+	actuators::EngineState engineState;
+	actuators::EngineStateExt engineStateExt;
+
+	engineState.header.stamp = ros::Time::now();
+	LOCK_MODEL();
+	engineState.cylinder_temperature1 = model->right_main_engine_cylinder_1_temperature;
+	engineState.cylinder_temperature2 = model->right_main_engine_cylinder_2_temperature;
+	engineState.exhaust_gas_temperature = model->right_main_engine_exhaust_temperature;
+	engineState.fuel_level_main_tank = model->right_main_engine_fuel_level;
+	engineState.fuel_level_aux_tank = model->right_main_engine_aux_fuel_level;
+	engineState.throttle1_angle = model->right_main_engine_throttle_1_angle;
+	engineState.throttle2_angle = model->right_main_engine_throttle_2_angle;
+	engineState.rate = model->right_main_engine_rate;
+
+	engineStateExt.header.stamp = ros::Time::now();
+	engineStateExt.ECU = model->right_main_engine_relay_state.ECU;
+	engineStateExt.aux_fuel_pump = model->right_main_engine_relay_state.aux_fuel_pump;
+	engineStateExt.electromotor_start = model->right_main_engine_relay_state.electromotor_start;
+	engineStateExt.ignition_1 = model->right_main_engine_relay_state.ignition_1;
+	engineStateExt.ignition_2 = model->right_main_engine_relay_state.ignition_2;
+	engineStateExt.magnetic_valve = model->right_main_engine_relay_state.magnetic_valve;
+	engineStateExt.main_fuel_pump = model->right_main_engine_relay_state.main_fuel_pump;
+	engineStateExt.servo = model->right_main_engine_relay_state.servo;
+
+	engineState.relay_state = engineStateExt;
+	UNLOCK_MODEL();
+
+	return engineState;
+}
+
+actuators::BallonetState getLeftBallonetState(struct actuators_model *model) {
+
+	actuators::BallonetState leftBallonet;
+
+	leftBallonet.header.stamp = ros::Time::now();
+
+	LOCK_MODEL();
+	leftBallonet.pressureDiff1 = model->left_ballonet_pressure_1;
+	leftBallonet.pressureDiff2 = model->left_ballonet_pressure_2;
+	leftBallonet.linear_valve_resistance = model->left_ballonet_linear_valve_resistance;
+	switch (model->left_ballonet_lights_state) {
+	case 0x55:
+		leftBallonet.light = 0;
+		break;
+	case 0xAA:
+		leftBallonet.light = 1;
+		break;
+	}
+
+	switch (model->left_ballonet_control) {
+	case 0:
+		leftBallonet.fan1 = 0;
+		leftBallonet.fan2 = 0;
+		leftBallonet.valve = 0;
+		break;
+	case 0x10:
+		leftBallonet.fan1 = 0;
+		leftBallonet.fan2 = 0;
+		leftBallonet.valve = 1;
+
+		break;
+	case 0x11:
+		leftBallonet.fan1 = 1;
+		leftBallonet.fan2 = 0;
+		leftBallonet.valve = 0;
+
+		break;
+	case 0x12:
+		leftBallonet.fan1 = 0;
+		leftBallonet.fan2 = 1;
+		leftBallonet.valve = 0;
+
+		break;
+	case 0x13:
+		leftBallonet.fan1 = 1;
+		leftBallonet.fan2 = 1;
+		leftBallonet.valve = 0;
+
+		break;
+	}
+	UNLOCK_MODEL();
+
+	return leftBallonet;
+}
+
+actuators::BallonetState getRightBallonetState(struct actuators_model *model) {
+
+	actuators::BallonetState rightBallonet;
+
+	rightBallonet.header.stamp = ros::Time::now();
+
+	LOCK_MODEL();
+	rightBallonet.pressureDiff1 = model->right_ballonet_pressure_1;
+	rightBallonet.pressureDiff2 = model->right_ballonet_pressure_2;
+	rightBallonet.linear_valve_resistance = model->right_ballonet_linear_valve_resistance;
+	switch (model->right_ballonet_lights_state) {
+	case 0x55:
+		rightBallonet.light = 0;
+		break;
+	case 0xAA:
+		rightBallonet.light = 1;
+		break;
+	}
+
+	switch (model->right_ballonet_control) {
+	case 0:
+		rightBallonet.fan1 = 0;
+		rightBallonet.fan2 = 0;
+		rightBallonet.valve = 0;
+		break;
+	case 0x10:
+		rightBallonet.fan1 = 0;
+		rightBallonet.fan2 = 0;
+		rightBallonet.valve = 1;
+
+		break;
+	case 0x11:
+		rightBallonet.fan1 = 1;
+		rightBallonet.fan2 = 0;
+		rightBallonet.valve = 0;
+
+		break;
+	case 0x12:
+		rightBallonet.fan1 = 0;
+		rightBallonet.fan2 = 1;
+		rightBallonet.valve = 0;
+
+		break;
+	case 0x13:
+		rightBallonet.fan1 = 1;
+		rightBallonet.fan2 = 1;
+		rightBallonet.valve = 0;
+
+		break;
+	}
+	UNLOCK_MODEL();
+
+	return rightBallonet;
+}
+
+actuators::EngineServoState getLeftMainEngineServoState(struct actuators_model *model) {
+	actuators::EngineServoState servoState;
+
+	servoState.header.stamp = ros::Time::now();
+	LOCK_MODEL();
+	servoState.angle = model->left_main_engine_rotation_angle;
+	servoState.voltage = model->left_main_engine_rotation_voltage;
+	servoState.current = model->left_main_engine_rotation_current;
+	UNLOCK_MODEL();
+
+	return servoState;
+}
+
+actuators::EngineServoState getRightMainEngineServoState(struct actuators_model *model) {
+	actuators::EngineServoState servoState;
+
+	servoState.header.stamp = ros::Time::now();
+	LOCK_MODEL();
+	servoState.angle = model->right_main_engine_rotation_angle;
+	servoState.voltage = model->right_main_engine_rotation_voltage;
+	servoState.current = model->right_main_engine_rotation_current;
+	UNLOCK_MODEL();
+
+	return servoState;
+}
+
+actuators::PowerSystemState getPowerSystemState(struct actuators_model *model) {
+	actuators::PowerSystemState powerSystemState;
+
+	powerSystemState.header.stamp = ros::Time::now();
+
+	// 0.1A
+	powerSystemState.left_main_engine_generator_output_current = model->left_main_engine_generator_output_current;
+
+	// 0.1V
+	powerSystemState.left_main_engine_generator_output_voltage = model->left_main_engine_generator_output_voltage;
+
+	// 0.1A
+	powerSystemState.right_main_engine_generator_output_current = model->right_main_engine_generator_output_current;
+
+	// 0.1V
+	powerSystemState.right_main_engine_generator_output_voltage = model->right_main_engine_generator_output_voltage;
+
+	// 0.1A
+	powerSystemState.left_ballonet_control_current = model->left_ballonet_control_current;
+
+	// 0.1A
+	powerSystemState.right_ballonet_control_current = model->right_ballonet_control_current;
+
+	// 0,1A
+	powerSystemState.power_section_28v_power_equipment_current = model->power_section_28v_power_equipment_current;
+
+	// 0,1A
+	powerSystemState.tail_section_28v_power_equipment_current = model->tail_section_28v_power_equipment_current;
+
+	// 0.1V
+	powerSystemState.bus_backup_28v_voltage = model->bus_backup_28v_voltage;
+
+	// 0,1V
+	powerSystemState.failsafe_28v_voltage = model->failsafe_28v_voltage;
+
+	// 0.1V
+	powerSystemState.backup_battery_voltage = model->backup_battery_voltage;
+
+	// 0,1V
+	powerSystemState.failsafe_battery_voltage = model->failsafe_battery_voltage;
+
+	// 0.1A
+	powerSystemState.backup_battery_charge_current = model->backup_battery_charge_current;
+
+	// 0.1A
+	powerSystemState.backup_battery_discharge_current = model->backup_battery_discharge_current;
+
+	// 1C
+	powerSystemState.backup_battery_monoblock_temperature = model->backup_battery_monoblock_temperature;
+
+	// примечание 1
+	actuators::BatteryBackupState batteryBackupState;
+	batteryBackupState.header.stamp = ros::Time::now();
+
+	batteryBackupState.battery1_failure_code = model->backup_battery_failure_state.battery1_failure_code;
+	batteryBackupState.battery2_failure_code = model->backup_battery_failure_state.battery2_failure_code;
+	batteryBackupState.battery3_failure_code = model->backup_battery_failure_state.battery3_failure_code;
+
+	batteryBackupState.battery1_failure_flag = model->backup_battery_failure_state.battery1_failure_flag;
+	batteryBackupState.battery2_failure_flag = model->backup_battery_failure_state.battery2_failure_flag;
+	batteryBackupState.battery3_failure_flag = model->backup_battery_failure_state.battery3_failure_flag;
+
+	powerSystemState.backup_battery_failure_state = batteryBackupState;
+
+	// 0.1A
+	powerSystemState.failsafe_battery_charge_current = model->failsafe_battery_charge_current;
+
+	// 0.1A
+	powerSystemState.failsafe_battery_discharge_current = model->failsafe_battery_discharge_current;
+
+	// 1C
+	powerSystemState.failsafe_battery_monoblock_temperature = model->failsafe_battery_monoblock_temperature;
+
+	// примечание 2
+	actuators::BatteryFailsafeState batteryFailsafeState;
+	batteryFailsafeState.header.stamp = ros::Time::now();
+
+	batteryFailsafeState.failsafe_battery1_failure_flag = model->failsafe_battery_failure_state.failsafe_battery1_failure_flag;
+	batteryFailsafeState.failsafe_battery2_failure_flag = model->failsafe_battery_failure_state.failsafe_battery2_failure_flag;
+
+	batteryFailsafeState.failsafe_battery1_failure_code = model->failsafe_battery_failure_state.failsafe_battery1_failure_code;
+	batteryFailsafeState.failsafe_battery2_failure_code = model->failsafe_battery_failure_state.failsafe_battery2_failure_code;
+
+	powerSystemState.failsafe_battery_failure_state = batteryFailsafeState;
+
+	// 0.1A
+	powerSystemState.left_charge_device_output_current = model->left_charge_device_output_current;
+
+	// reserved
+	powerSystemState.left_charge_device_state = model->left_charge_device_state;
+
+	// 0.1A
+	powerSystemState.right_charge_device_output_current = model->right_charge_device_output_current;
+
+	// reserved
+	powerSystemState.right_charge_device_state = model->right_charge_device_state;
+
+	// примечание 3
+	struct power_distribution_relay_state distribution_relay_state;
+	actuators::PowerDistributionRelayState powerDistributionRelayState;
+	powerDistributionRelayState.header.stamp = ros::Time::now();
+
+	powerDistributionRelayState.both_battery_power = model->distribution_relay_state.both_battery_power;
+	powerDistributionRelayState.bottom_signal_lights = model->distribution_relay_state.bottom_signal_lights;
+	powerDistributionRelayState.top_signal_lights = model->distribution_relay_state.top_signal_lights;
+	powerDistributionRelayState.left_power_equipment = model->distribution_relay_state.left_power_equipment;
+	powerDistributionRelayState.right_power_equipment = model->distribution_relay_state.right_power_equipment;
+	powerDistributionRelayState.tail_28v_equipment = model->distribution_relay_state.tail_28v_equipment;
+	powerDistributionRelayState.left_pressure_control = model->distribution_relay_state.left_pressure_control;
+	powerDistributionRelayState.right_pressure_control = model->distribution_relay_state.right_pressure_control;
+	powerDistributionRelayState.load = model->distribution_relay_state.load;
+	powerDistributionRelayState.reserved = model->distribution_relay_state.reserved;
+
+	powerSystemState.distribution_relay_state = powerDistributionRelayState;
+
+	// 0.1A
+	powerSystemState.load_equipment_28v_current = model->load_equipment_28v_current;
+
+	// примечание 4
+	struct power_distribution_line_failure distribution_lines_failure_state;
+	actuators::PowerDistributionLineFailure powerDistributionLineFailure;
+	powerDistributionLineFailure.header.stamp = ros::Time::now();
+
+	powerDistributionLineFailure.bottom_signal_lights_failure = model->distribution_lines_failure_state.bottom_signal_lights_failure;
+	powerDistributionLineFailure.top_signal_lights_failure = model->distribution_lines_failure_state.top_signal_lights_failure;
+	powerDistributionLineFailure.left_power_equipment_failure = model->distribution_lines_failure_state.left_power_equipment_failure;
+	powerDistributionLineFailure.right_power_equipment_failure = model->distribution_lines_failure_state.right_power_equipment_failure;
+	powerDistributionLineFailure.tail_equipment_failure = model->distribution_lines_failure_state.tail_equipment_failure;
+
+	powerSystemState.distribution_lines_failure_state = powerDistributionLineFailure;
+
+	return powerSystemState;
+}
 
 void report_topics(void) {
 	//LOG_TRACE;
 
-	actuators::BallonetState leftBallonet;
-	actuators::BallonetState rightBallonet;
-
 	struct actuators_model *model;
 
 	model = &MODEL;
+
+	leftBallonetStatePublisher.publish(getLeftBallonetState(model));
+	rightBallonetStatePublisher.publish(getRightBallonetState(model));
+
+	leftEngineServoStatePublisher.publish(getLeftMainEngineServoState(model));
+	rightEngineServoStatePublisher.publish(getRightMainEngineServoState(model));
+
+	leftEngineStatePublisher.publish(getLeftMainEngineState(model));
+	rightEngineStatePublisher.publish(getRightMainEngineState(model));
+
+	powerSystemStatePublisher.publish(getPowerSystemState(model));
+
 #if 0
-	leftBallonet.header.stamp = ros::Time::now();
-	LOCK_MODEL();
-	leftBallonet.fan1 = model->left_ballonet_state.ballonet_fan_1;
-	leftBallonet.fan2 = model->left_ballonet_state.ballonet_fan_2;
-	leftBallonet.valve = model->left_ballonet_state.ballonet_valve_1;
-	/* FIXME left is double, right is WORD */
-	leftBallonet.pressureDiff1 = model->left_ballonet_differential_pressure_1;
-	leftBallonet.pressureDiff2 = model->left_ballonet_differential_pressure_2;
-	UNLOCK_MODEL();
-	leftBallonetStatePublisher.publish(leftBallonet);
-
-	rightBallonet.header.stamp = ros::Time::now();
-	LOCK_MODEL();
-	rightBallonet.fan1 = model->right_ballonet_state.ballonet_fan_1;
-	rightBallonet.fan2 = model->right_ballonet_state.ballonet_fan_2;
-	rightBallonet.valve = model->right_ballonet_state.ballonet_valve_1;
-	/* FIXME right is double, right is WORD */
-	rightBallonet.pressureDiff1 = model->right_ballonet_differential_pressure_1;
-	rightBallonet.pressureDiff2 = model->right_ballonet_differential_pressure_2;
-	UNLOCK_MODEL();
-	rightBallonetStatePublisher.publish(rightBallonet);
-
-	actuators::BallonetStateExt leftBallonetExt;
-	actuators::BallonetStateExt rightBallonetExt;
-
 	/* dunno how to fill those */
 
 	actuators::EngineState leftEngineState;
@@ -271,14 +1102,12 @@ void report_topics(void) {
 	/* fixme right is FLOAT right is WORD */
 	rightEngineState.rate = model->right_main_engine_rate;
 	rightEngineStatePublisher.publish(rightEngineState);
-#endif
-	actuators::ElectromotorsState electromotorsState;
 
-#if 0
 	actuators::EngineStateExt leftEngineStateExt;
 	actuators::EngineStateExt rightEngineStateExt;
+
 #endif
-	/* dunno how to fill those */
+	actuators::ElectromotorsState electromotorsState;
 
 	actuators::ElectromotorState leftElectromotorState;
 	leftElectromotorState.header.stamp = ros::Time::now();
@@ -292,25 +1121,6 @@ void report_topics(void) {
 	/* FIXME left is float, right is WORD */
 	rightElectromotorState.rate = model->right_electromotor_rate;
 	rightElectromotorStatePublisher.publish(rightElectromotorState);
-
-#if 0
-	actuators::EngineServoState leftEngineServoState;
-	actuators::EngineServoState rightEngineServoState;
-
-	leftEngineServoState.header.stamp = ros::Time::now();
-	LOCK_MODEL();
-	leftEngineServoState.angle = model->left_main_engine_angle;
-	leftEngineServoState.fix = model->left_main_engine_fix == MAIN_ENGINE_FIX_FORCE;
-	UNLOCK_MODEL();
-	leftEngineServoStatePublisher.publish(leftEngineServoState);
-
-	rightEngineServoState.header.stamp = ros::Time::now();
-	LOCK_MODEL();
-	rightEngineServoState.angle = model->right_main_engine_angle;
-	rightEngineServoState.fix = model->right_main_engine_fix == MAIN_ENGINE_FIX_FORCE;
-	UNLOCK_MODEL();
-	rightEngineServoStatePublisher.publish(rightEngineServoState);
-#endif
 
 	actuators::ElectromotorServoState leftElectromotorServoState;
 	actuators::ElectromotorServoState rightElectromotorServoState;
@@ -338,6 +1148,24 @@ void report_topics(void) {
 	electromotorsState.right_em_servo = rightElectromotorServoState;
 
 	electromotorsStatePublisher.publish(electromotorsState);
+
+	actuators::ElectromotorsStateExt electromotorsStateExt;
+	electromotorsStateExt.header.stamp = ros::Time::now();
+	electromotorsStateExt.basic_state = electromotorsState;
+
+	electromotorsStateExt.left_electromotor_current = model->left_electromotor_current;
+	electromotorsStateExt.right_electromotor_current = model->right_electromotor_current;
+
+	electromotorsStateExt.left_electromotor_voltage = model->left_electromotor_voltage;
+	electromotorsStateExt.right_electromotor_voltage = model->right_electromotor_voltage;
+
+	electromotorsStateExt.left_electromotor_temperature = model->left_electromotor_temperature;
+	electromotorsStateExt.left_electromotor_servo_temperature = model->left_electromotor_rotation_temperature;
+
+	electromotorsStateExt.right_electromotor_temperature = model->right_electromotor_temperature;
+	electromotorsStateExt.right_electromotor_servo_temperature = model->right_electromotor_rotation_temperature;
+
+	electromotorsStateExtPublisher.publish(electromotorsStateExt);
 }
 
 extern sig_atomic_t exit_flag;
@@ -369,15 +1197,38 @@ void *ros_main(void *data) {
 	leftElectromotorStatePublisher = nh.advertise<actuators::ElectromotorState>("/left_electromotor_state", 10);
 	rightElectromotorStatePublisher = nh.advertise<actuators::ElectromotorState>("/right_electromotor_state", 10);
 
-	leftEngineServoStateExtPublisher = nh.advertise<actuators::ElectromotorsStateExt>("/left_engine_servo_state_ext", 10);
-	rightEngineServoStateExtPublisher = nh.advertise<actuators::ElectromotorsStateExt>("/right_engine_servo_state_ext", 10);
+	//leftEngineServoStateExtPublisher = nh.advertise<actuators::ElectromotorsStateExt>("/left_engine_servo_state_ext", 10);
+	//rightEngineServoStateExtPublisher = nh.advertise<actuators::ElectromotorsStateExt>("/right_engine_servo_state_ext", 10);
 
 	electromotorsStatePublisher = nh.advertise<actuators::ElectromotorsState>("/electromotors_state", 10);
+	electromotorsStateExtPublisher = nh.advertise<actuators::ElectromotorsStateExt>("/electromotors_state_ext", 10);
+
+	powerSystemStatePublisher = nh.advertise<actuators::PowerSystemState>("/power_system_state", 10);
+
+	set_generator_control_service = nh.advertiseService("/actuators/set_generator_control", set_generator_control);
+	set_power_relay_service = nh.advertiseService("/actuators/set_power_relay", set_power_relay);
 
 	set_motors_control_service = nh.advertiseService("/actuators/set_motors_control", set_motors_control);
-#if 0
+	set_tail_electromotor_onoff_service = nh.advertiseService("/actuators/set_electromotor_onoff", set_electromotor_onoff);
+
+	start_left_engine_service = nh.advertiseService("/actuators/start_left_engine", start_left_engine);
+	stop_left_engine_service = nh.advertiseService("/actuators/stop_left_engine", stop_left_engine);
+	set_left_engine_relay_state_service = nh.advertiseService("/actuators/set_left_engine_relay_state", set_left_main_engine_relay_state);
+
+	start_right_engine_service = nh.advertiseService("/actuators/start_right_engine", start_right_engine);
+	stop_right_engine_service = nh.advertiseService("/actuators/stop_right_engine", stop_right_engine);
+	set_right_engine_relay_state_service = nh.advertiseService("/actuators/set_right_engine_relay_state", set_right_main_engine_relay_state);
+
+	set_left_ballonet_automatic_control_parameters_service = nh.advertiseService("/actuators/set_left_ballonet_automatic_control_parameters", set_left_ballonet_automatic_control_parameters);
+	set_left_ballonet_regime_service = nh.advertiseService("/actuators/set_left_ballonet_regime", set_left_ballonet_regime);
 	set_left_ballonet_control_service = nh.advertiseService("/actuators/set_left_ballonet_control", set_left_ballonet_control);
+
+	set_right_ballonet_automatic_control_parameters_service = nh.advertiseService("/actuators/set_right_ballonet_automatic_control_parameters", set_right_ballonet_automatic_control_parameters);
+	set_right_ballonet_regime_service = nh.advertiseService("/actuators/set_right_ballonet_regime", set_right_ballonet_regime);
 	set_right_ballonet_control_service = nh.advertiseService("/actuators/set_right_ballonet_control", set_right_ballonet_control);
+
+#if 0
+
 	switch_helium_valve_service = nh.advertiseService("/actuators/switch_helium_valve", switch_helium_valve);
 #endif
 

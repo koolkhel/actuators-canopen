@@ -4,18 +4,25 @@ python3 = True if sys.hexversion > 0x03000000 else False
 import genpy
 import struct
 
+import actuators.msg
 import std_msgs.msg
 
 class EngineState(genpy.Message):
-  _md5sum = "5dcf7e58d50fbf046c592264dc354dea"
+  _md5sum = "70e18be7ef239749a3008c96f1220c0b"
   _type = "actuators/EngineState"
   _has_header = True #flag to mark the presence of a Header object
   _full_text = """Header header
 
-# 
 float32 rate
+float32 fuel_level_main_tank # main tank fuel level
+float32 fuel_level_aux_tank # level of additional fuel tank
+float32 exhaust_gas_temperature
+float32 cylinder_temperature1
+float32 cylinder_temperature2
+float32 throttle1_angle
+float32 throttle2_angle
 
-
+EngineStateExt relay_state
 
 ================================================================================
 MSG: std_msgs/Header
@@ -35,9 +42,22 @@ time stamp
 # 1: global frame
 string frame_id
 
+================================================================================
+MSG: actuators/EngineStateExt
+Header header
+
+bool ignition_1
+bool ignition_2
+bool servo
+bool magnetic_valve # reserved
+bool ECU
+bool electromotor_start
+bool aux_fuel_pump # reserved
+bool main_fuel_pump
+
 """
-  __slots__ = ['header','rate']
-  _slot_types = ['std_msgs/Header','float32']
+  __slots__ = ['header','rate','fuel_level_main_tank','fuel_level_aux_tank','exhaust_gas_temperature','cylinder_temperature1','cylinder_temperature2','throttle1_angle','throttle2_angle','relay_state']
+  _slot_types = ['std_msgs/Header','float32','float32','float32','float32','float32','float32','float32','float32','actuators/EngineStateExt']
 
   def __init__(self, *args, **kwds):
     """
@@ -47,7 +67,7 @@ string frame_id
     changes.  You cannot mix in-order arguments and keyword arguments.
 
     The available fields are:
-       header,rate
+       header,rate,fuel_level_main_tank,fuel_level_aux_tank,exhaust_gas_temperature,cylinder_temperature1,cylinder_temperature2,throttle1_angle,throttle2_angle,relay_state
 
     :param args: complete set of field values, in .msg order
     :param kwds: use keyword arguments corresponding to message field names
@@ -60,9 +80,33 @@ string frame_id
         self.header = std_msgs.msg.Header()
       if self.rate is None:
         self.rate = 0.
+      if self.fuel_level_main_tank is None:
+        self.fuel_level_main_tank = 0.
+      if self.fuel_level_aux_tank is None:
+        self.fuel_level_aux_tank = 0.
+      if self.exhaust_gas_temperature is None:
+        self.exhaust_gas_temperature = 0.
+      if self.cylinder_temperature1 is None:
+        self.cylinder_temperature1 = 0.
+      if self.cylinder_temperature2 is None:
+        self.cylinder_temperature2 = 0.
+      if self.throttle1_angle is None:
+        self.throttle1_angle = 0.
+      if self.throttle2_angle is None:
+        self.throttle2_angle = 0.
+      if self.relay_state is None:
+        self.relay_state = actuators.msg.EngineStateExt()
     else:
       self.header = std_msgs.msg.Header()
       self.rate = 0.
+      self.fuel_level_main_tank = 0.
+      self.fuel_level_aux_tank = 0.
+      self.exhaust_gas_temperature = 0.
+      self.cylinder_temperature1 = 0.
+      self.cylinder_temperature2 = 0.
+      self.throttle1_angle = 0.
+      self.throttle2_angle = 0.
+      self.relay_state = actuators.msg.EngineStateExt()
 
   def _get_types(self):
     """
@@ -84,7 +128,16 @@ string frame_id
         _x = _x.encode('utf-8')
         length = len(_x)
       buff.write(struct.pack('<I%ss'%length, length, _x))
-      buff.write(_struct_f.pack(self.rate))
+      _x = self
+      buff.write(_struct_8f3I.pack(_x.rate, _x.fuel_level_main_tank, _x.fuel_level_aux_tank, _x.exhaust_gas_temperature, _x.cylinder_temperature1, _x.cylinder_temperature2, _x.throttle1_angle, _x.throttle2_angle, _x.relay_state.header.seq, _x.relay_state.header.stamp.secs, _x.relay_state.header.stamp.nsecs))
+      _x = self.relay_state.header.frame_id
+      length = len(_x)
+      if python3 or type(_x) == unicode:
+        _x = _x.encode('utf-8')
+        length = len(_x)
+      buff.write(struct.pack('<I%ss'%length, length, _x))
+      _x = self
+      buff.write(_struct_8B.pack(_x.relay_state.ignition_1, _x.relay_state.ignition_2, _x.relay_state.servo, _x.relay_state.magnetic_valve, _x.relay_state.ECU, _x.relay_state.electromotor_start, _x.relay_state.aux_fuel_pump, _x.relay_state.main_fuel_pump))
     except struct.error as se: self._check_types(se)
     except TypeError as te: self._check_types(te)
 
@@ -96,6 +149,8 @@ string frame_id
     try:
       if self.header is None:
         self.header = std_msgs.msg.Header()
+      if self.relay_state is None:
+        self.relay_state = actuators.msg.EngineStateExt()
       end = 0
       _x = self
       start = end
@@ -110,9 +165,31 @@ string frame_id
         self.header.frame_id = str[start:end].decode('utf-8')
       else:
         self.header.frame_id = str[start:end]
+      _x = self
+      start = end
+      end += 44
+      (_x.rate, _x.fuel_level_main_tank, _x.fuel_level_aux_tank, _x.exhaust_gas_temperature, _x.cylinder_temperature1, _x.cylinder_temperature2, _x.throttle1_angle, _x.throttle2_angle, _x.relay_state.header.seq, _x.relay_state.header.stamp.secs, _x.relay_state.header.stamp.nsecs,) = _struct_8f3I.unpack(str[start:end])
       start = end
       end += 4
-      (self.rate,) = _struct_f.unpack(str[start:end])
+      (length,) = _struct_I.unpack(str[start:end])
+      start = end
+      end += length
+      if python3:
+        self.relay_state.header.frame_id = str[start:end].decode('utf-8')
+      else:
+        self.relay_state.header.frame_id = str[start:end]
+      _x = self
+      start = end
+      end += 8
+      (_x.relay_state.ignition_1, _x.relay_state.ignition_2, _x.relay_state.servo, _x.relay_state.magnetic_valve, _x.relay_state.ECU, _x.relay_state.electromotor_start, _x.relay_state.aux_fuel_pump, _x.relay_state.main_fuel_pump,) = _struct_8B.unpack(str[start:end])
+      self.relay_state.ignition_1 = bool(self.relay_state.ignition_1)
+      self.relay_state.ignition_2 = bool(self.relay_state.ignition_2)
+      self.relay_state.servo = bool(self.relay_state.servo)
+      self.relay_state.magnetic_valve = bool(self.relay_state.magnetic_valve)
+      self.relay_state.ECU = bool(self.relay_state.ECU)
+      self.relay_state.electromotor_start = bool(self.relay_state.electromotor_start)
+      self.relay_state.aux_fuel_pump = bool(self.relay_state.aux_fuel_pump)
+      self.relay_state.main_fuel_pump = bool(self.relay_state.main_fuel_pump)
       return self
     except struct.error as e:
       raise genpy.DeserializationError(e) #most likely buffer underfill
@@ -133,7 +210,16 @@ string frame_id
         _x = _x.encode('utf-8')
         length = len(_x)
       buff.write(struct.pack('<I%ss'%length, length, _x))
-      buff.write(_struct_f.pack(self.rate))
+      _x = self
+      buff.write(_struct_8f3I.pack(_x.rate, _x.fuel_level_main_tank, _x.fuel_level_aux_tank, _x.exhaust_gas_temperature, _x.cylinder_temperature1, _x.cylinder_temperature2, _x.throttle1_angle, _x.throttle2_angle, _x.relay_state.header.seq, _x.relay_state.header.stamp.secs, _x.relay_state.header.stamp.nsecs))
+      _x = self.relay_state.header.frame_id
+      length = len(_x)
+      if python3 or type(_x) == unicode:
+        _x = _x.encode('utf-8')
+        length = len(_x)
+      buff.write(struct.pack('<I%ss'%length, length, _x))
+      _x = self
+      buff.write(_struct_8B.pack(_x.relay_state.ignition_1, _x.relay_state.ignition_2, _x.relay_state.servo, _x.relay_state.magnetic_valve, _x.relay_state.ECU, _x.relay_state.electromotor_start, _x.relay_state.aux_fuel_pump, _x.relay_state.main_fuel_pump))
     except struct.error as se: self._check_types(se)
     except TypeError as te: self._check_types(te)
 
@@ -146,6 +232,8 @@ string frame_id
     try:
       if self.header is None:
         self.header = std_msgs.msg.Header()
+      if self.relay_state is None:
+        self.relay_state = actuators.msg.EngineStateExt()
       end = 0
       _x = self
       start = end
@@ -160,13 +248,36 @@ string frame_id
         self.header.frame_id = str[start:end].decode('utf-8')
       else:
         self.header.frame_id = str[start:end]
+      _x = self
+      start = end
+      end += 44
+      (_x.rate, _x.fuel_level_main_tank, _x.fuel_level_aux_tank, _x.exhaust_gas_temperature, _x.cylinder_temperature1, _x.cylinder_temperature2, _x.throttle1_angle, _x.throttle2_angle, _x.relay_state.header.seq, _x.relay_state.header.stamp.secs, _x.relay_state.header.stamp.nsecs,) = _struct_8f3I.unpack(str[start:end])
       start = end
       end += 4
-      (self.rate,) = _struct_f.unpack(str[start:end])
+      (length,) = _struct_I.unpack(str[start:end])
+      start = end
+      end += length
+      if python3:
+        self.relay_state.header.frame_id = str[start:end].decode('utf-8')
+      else:
+        self.relay_state.header.frame_id = str[start:end]
+      _x = self
+      start = end
+      end += 8
+      (_x.relay_state.ignition_1, _x.relay_state.ignition_2, _x.relay_state.servo, _x.relay_state.magnetic_valve, _x.relay_state.ECU, _x.relay_state.electromotor_start, _x.relay_state.aux_fuel_pump, _x.relay_state.main_fuel_pump,) = _struct_8B.unpack(str[start:end])
+      self.relay_state.ignition_1 = bool(self.relay_state.ignition_1)
+      self.relay_state.ignition_2 = bool(self.relay_state.ignition_2)
+      self.relay_state.servo = bool(self.relay_state.servo)
+      self.relay_state.magnetic_valve = bool(self.relay_state.magnetic_valve)
+      self.relay_state.ECU = bool(self.relay_state.ECU)
+      self.relay_state.electromotor_start = bool(self.relay_state.electromotor_start)
+      self.relay_state.aux_fuel_pump = bool(self.relay_state.aux_fuel_pump)
+      self.relay_state.main_fuel_pump = bool(self.relay_state.main_fuel_pump)
       return self
     except struct.error as e:
       raise genpy.DeserializationError(e) #most likely buffer underfill
 
 _struct_I = genpy.struct_I
+_struct_8B = struct.Struct("<8B")
 _struct_3I = struct.Struct("<3I")
-_struct_f = struct.Struct("<f")
+_struct_8f3I = struct.Struct("<8f3I")

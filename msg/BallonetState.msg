@@ -8,4 +8,6 @@ bool fan1				#
 bool fan2				# 
 	
 bool valve				# 
-bool valve_helium		# 
+bool light		# 
+
+float32 linear_valve_resistance

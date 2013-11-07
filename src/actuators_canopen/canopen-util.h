@@ -37,9 +37,9 @@ UNS8 _getIndexSubindex(CO_Data *d, UNS8 nodeId, UNS16 *index, UNS8 *subindex);
 		UNS32 PDO_callback_ ## NAME ## _index_ ## INDEX ##_ ## COMMAND_NO (CO_Data *d, const indextable *unused, UNS8 Subindex); \
 			__attribute__ ((constructor))\
 						void init_pdo_callback_ ## INDEX () {\
-								callbacks[callback_no].index = INDEX;	\
-								callbacks[callback_no].callback_fn = PDO_callback_ ## NAME ## _index_ ## INDEX ##_ ## COMMAND_NO; \
-								callback_no++;\
+								pdo_callbacks[pdo_callback_no].index = INDEX;	\
+								pdo_callbacks[pdo_callback_no].callback_fn = PDO_callback_ ## NAME ## _index_ ## INDEX ##_ ## COMMAND_NO; \
+								pdo_callback_no++;\
 						} \
 		UNS32 PDO_callback_ ## NAME ## _index_ ## INDEX ##_ ## COMMAND_NO (CO_Data *d, const indextable *unused, UNS8 Subindex)
 
@@ -69,12 +69,16 @@ extern std::queue<int> send_queue_COB;
 extern pthread_mutex_t send_queue_COB_lock;
 void enqueue_PDO(int PDO);
 #define SEND_QUEUE_LOCK() do {\
-        pthread_mutex_lock(&send_queue_COB_lock);\
-} while(0)
-#define SEND_QUEUE_UNLOCK() do {\
-        pthread_mutex_unlock(&send_queue_COB_lock);\
+	pthread_mutex_lock(&send_queue_COB_lock);\
 } while(0)
 
+
+#define SEND_QUEUE_UNLOCK() do {\
+	pthread_mutex_unlock(&send_queue_COB_lock);\
+} while(0)
+
+
 #define SDO_USE_BLOCK_MODE 1
+#define SDO_USE_EXPEDITED_MODE 0
 
 #endif /* CANOPEN_UTIL_H_ */

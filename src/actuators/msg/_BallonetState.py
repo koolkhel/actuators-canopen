@@ -7,7 +7,7 @@ import struct
 import std_msgs.msg
 
 class BallonetState(genpy.Message):
-  _md5sum = "015af87c2b26b12c8dfae8fdc0880ebe"
+  _md5sum = "77297c25011c2651a5499d764eab5564"
   _type = "actuators/BallonetState"
   _has_header = True #flag to mark the presence of a Header object
   _full_text = """Header header
@@ -20,7 +20,10 @@ bool fan1				#
 bool fan2				# 
 	
 bool valve				# 
-bool valve_helium		# 
+bool light		# 
+
+float32 linear_valve_resistance
+
 ================================================================================
 MSG: std_msgs/Header
 # Standard metadata for higher-level stamped data types.
@@ -40,8 +43,8 @@ time stamp
 string frame_id
 
 """
-  __slots__ = ['header','pressureDiff1','pressureDiff2','fan1','fan2','valve','valve_helium']
-  _slot_types = ['std_msgs/Header','float64','float64','bool','bool','bool','bool']
+  __slots__ = ['header','pressureDiff1','pressureDiff2','fan1','fan2','valve','light','linear_valve_resistance']
+  _slot_types = ['std_msgs/Header','float64','float64','bool','bool','bool','bool','float32']
 
   def __init__(self, *args, **kwds):
     """
@@ -51,7 +54,7 @@ string frame_id
     changes.  You cannot mix in-order arguments and keyword arguments.
 
     The available fields are:
-       header,pressureDiff1,pressureDiff2,fan1,fan2,valve,valve_helium
+       header,pressureDiff1,pressureDiff2,fan1,fan2,valve,light,linear_valve_resistance
 
     :param args: complete set of field values, in .msg order
     :param kwds: use keyword arguments corresponding to message field names
@@ -72,8 +75,10 @@ string frame_id
         self.fan2 = False
       if self.valve is None:
         self.valve = False
-      if self.valve_helium is None:
-        self.valve_helium = False
+      if self.light is None:
+        self.light = False
+      if self.linear_valve_resistance is None:
+        self.linear_valve_resistance = 0.
     else:
       self.header = std_msgs.msg.Header()
       self.pressureDiff1 = 0.
@@ -81,7 +86,8 @@ string frame_id
       self.fan1 = False
       self.fan2 = False
       self.valve = False
-      self.valve_helium = False
+      self.light = False
+      self.linear_valve_resistance = 0.
 
   def _get_types(self):
     """
@@ -104,7 +110,7 @@ string frame_id
         length = len(_x)
       buff.write(struct.pack('<I%ss'%length, length, _x))
       _x = self
-      buff.write(_struct_2d4B.pack(_x.pressureDiff1, _x.pressureDiff2, _x.fan1, _x.fan2, _x.valve, _x.valve_helium))
+      buff.write(_struct_2d4Bf.pack(_x.pressureDiff1, _x.pressureDiff2, _x.fan1, _x.fan2, _x.valve, _x.light, _x.linear_valve_resistance))
     except struct.error as se: self._check_types(se)
     except TypeError as te: self._check_types(te)
 
@@ -132,12 +138,12 @@ string frame_id
         self.header.frame_id = str[start:end]
       _x = self
       start = end
-      end += 20
-      (_x.pressureDiff1, _x.pressureDiff2, _x.fan1, _x.fan2, _x.valve, _x.valve_helium,) = _struct_2d4B.unpack(str[start:end])
+      end += 24
+      (_x.pressureDiff1, _x.pressureDiff2, _x.fan1, _x.fan2, _x.valve, _x.light, _x.linear_valve_resistance,) = _struct_2d4Bf.unpack(str[start:end])
       self.fan1 = bool(self.fan1)
       self.fan2 = bool(self.fan2)
       self.valve = bool(self.valve)
-      self.valve_helium = bool(self.valve_helium)
+      self.light = bool(self.light)
       return self
     except struct.error as e:
       raise genpy.DeserializationError(e) #most likely buffer underfill
@@ -159,7 +165,7 @@ string frame_id
         length = len(_x)
       buff.write(struct.pack('<I%ss'%length, length, _x))
       _x = self
-      buff.write(_struct_2d4B.pack(_x.pressureDiff1, _x.pressureDiff2, _x.fan1, _x.fan2, _x.valve, _x.valve_helium))
+      buff.write(_struct_2d4Bf.pack(_x.pressureDiff1, _x.pressureDiff2, _x.fan1, _x.fan2, _x.valve, _x.light, _x.linear_valve_resistance))
     except struct.error as se: self._check_types(se)
     except TypeError as te: self._check_types(te)
 
@@ -188,16 +194,16 @@ string frame_id
         self.header.frame_id = str[start:end]
       _x = self
       start = end
-      end += 20
-      (_x.pressureDiff1, _x.pressureDiff2, _x.fan1, _x.fan2, _x.valve, _x.valve_helium,) = _struct_2d4B.unpack(str[start:end])
+      end += 24
+      (_x.pressureDiff1, _x.pressureDiff2, _x.fan1, _x.fan2, _x.valve, _x.light, _x.linear_valve_resistance,) = _struct_2d4Bf.unpack(str[start:end])
       self.fan1 = bool(self.fan1)
       self.fan2 = bool(self.fan2)
       self.valve = bool(self.valve)
-      self.valve_helium = bool(self.valve_helium)
+      self.light = bool(self.light)
       return self
     except struct.error as e:
       raise genpy.DeserializationError(e) #most likely buffer underfill
 
 _struct_I = genpy.struct_I
-_struct_2d4B = struct.Struct("<2d4B")
 _struct_3I = struct.Struct("<3I")
+_struct_2d4Bf = struct.Struct("<2d4Bf")

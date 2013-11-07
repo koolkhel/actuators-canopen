@@ -6,18 +6,25 @@ import struct
 
 
 class SetMotorsControlRequest(genpy.Message):
-  _md5sum = "4aafbb70ad84cfa54bc91135004c3506"
+  _md5sum = "88f9d0b6364646ef27fa1b6afc9e4fa0"
   _type = "actuators/SetMotorsControlRequest"
   _has_header = False #flag to mark the presence of a Header object
-  _full_text = """
-float32 left_engine_rate
+  _full_text = """byte ENGINES_CONTROL_MODE_RATE = 0
+byte ENGINES_CONTROL_MODE_THTROTTLE = 1
+
+
+byte left_engine_control_regime
+
+float32 left_engine_control
 
 float32 left_engine_servo_angle
 
 bool left_engine_servo_fix
 
 
-float32 right_engine_rate
+byte right_engine_control_regime
+
+float32 right_engine_control
 
 float32 right_engine_servo_angle
 
@@ -40,8 +47,12 @@ float32 right_electromotors_servo_angley
 bool right_electromotors_servo_fix
 
 """
-  __slots__ = ['left_engine_rate','left_engine_servo_angle','left_engine_servo_fix','right_engine_rate','right_engine_servo_angle','right_engine_servo_fix','left_electromotor_rate','left_electromotors_servo_anglex','left_electromotors_servo_angley','left_electromotors_servo_fix','right_electromotor_rate','right_electromotors_servo_anglex','right_electromotors_servo_angley','right_electromotors_servo_fix']
-  _slot_types = ['float32','float32','bool','float32','float32','bool','float32','float32','float32','bool','float32','float32','float32','bool']
+  # Pseudo-constants
+  ENGINES_CONTROL_MODE_RATE = 0
+  ENGINES_CONTROL_MODE_THTROTTLE = 1
+
+  __slots__ = ['left_engine_control_regime','left_engine_control','left_engine_servo_angle','left_engine_servo_fix','right_engine_control_regime','right_engine_control','right_engine_servo_angle','right_engine_servo_fix','left_electromotor_rate','left_electromotors_servo_anglex','left_electromotors_servo_angley','left_electromotors_servo_fix','right_electromotor_rate','right_electromotors_servo_anglex','right_electromotors_servo_angley','right_electromotors_servo_fix']
+  _slot_types = ['byte','float32','float32','bool','byte','float32','float32','bool','float32','float32','float32','bool','float32','float32','float32','bool']
 
   def __init__(self, *args, **kwds):
     """
@@ -51,7 +62,7 @@ bool right_electromotors_servo_fix
     changes.  You cannot mix in-order arguments and keyword arguments.
 
     The available fields are:
-       left_engine_rate,left_engine_servo_angle,left_engine_servo_fix,right_engine_rate,right_engine_servo_angle,right_engine_servo_fix,left_electromotor_rate,left_electromotors_servo_anglex,left_electromotors_servo_angley,left_electromotors_servo_fix,right_electromotor_rate,right_electromotors_servo_anglex,right_electromotors_servo_angley,right_electromotors_servo_fix
+       left_engine_control_regime,left_engine_control,left_engine_servo_angle,left_engine_servo_fix,right_engine_control_regime,right_engine_control,right_engine_servo_angle,right_engine_servo_fix,left_electromotor_rate,left_electromotors_servo_anglex,left_electromotors_servo_angley,left_electromotors_servo_fix,right_electromotor_rate,right_electromotors_servo_anglex,right_electromotors_servo_angley,right_electromotors_servo_fix
 
     :param args: complete set of field values, in .msg order
     :param kwds: use keyword arguments corresponding to message field names
@@ -60,14 +71,18 @@ bool right_electromotors_servo_fix
     if args or kwds:
       super(SetMotorsControlRequest, self).__init__(*args, **kwds)
       #message fields cannot be None, assign default values for those that are
-      if self.left_engine_rate is None:
-        self.left_engine_rate = 0.
+      if self.left_engine_control_regime is None:
+        self.left_engine_control_regime = 0
+      if self.left_engine_control is None:
+        self.left_engine_control = 0.
       if self.left_engine_servo_angle is None:
         self.left_engine_servo_angle = 0.
       if self.left_engine_servo_fix is None:
         self.left_engine_servo_fix = False
-      if self.right_engine_rate is None:
-        self.right_engine_rate = 0.
+      if self.right_engine_control_regime is None:
+        self.right_engine_control_regime = 0
+      if self.right_engine_control is None:
+        self.right_engine_control = 0.
       if self.right_engine_servo_angle is None:
         self.right_engine_servo_angle = 0.
       if self.right_engine_servo_fix is None:
@@ -89,10 +104,12 @@ bool right_electromotors_servo_fix
       if self.right_electromotors_servo_fix is None:
         self.right_electromotors_servo_fix = False
     else:
-      self.left_engine_rate = 0.
+      self.left_engine_control_regime = 0
+      self.left_engine_control = 0.
       self.left_engine_servo_angle = 0.
       self.left_engine_servo_fix = False
-      self.right_engine_rate = 0.
+      self.right_engine_control_regime = 0
+      self.right_engine_control = 0.
       self.right_engine_servo_angle = 0.
       self.right_engine_servo_fix = False
       self.left_electromotor_rate = 0.
@@ -117,7 +134,7 @@ bool right_electromotors_servo_fix
     """
     try:
       _x = self
-      buff.write(_struct_2fB2fB3fB3fB.pack(_x.left_engine_rate, _x.left_engine_servo_angle, _x.left_engine_servo_fix, _x.right_engine_rate, _x.right_engine_servo_angle, _x.right_engine_servo_fix, _x.left_electromotor_rate, _x.left_electromotors_servo_anglex, _x.left_electromotors_servo_angley, _x.left_electromotors_servo_fix, _x.right_electromotor_rate, _x.right_electromotors_servo_anglex, _x.right_electromotors_servo_angley, _x.right_electromotors_servo_fix))
+      buff.write(_struct_b2fBb2fB3fB3fB.pack(_x.left_engine_control_regime, _x.left_engine_control, _x.left_engine_servo_angle, _x.left_engine_servo_fix, _x.right_engine_control_regime, _x.right_engine_control, _x.right_engine_servo_angle, _x.right_engine_servo_fix, _x.left_electromotor_rate, _x.left_electromotors_servo_anglex, _x.left_electromotors_servo_angley, _x.left_electromotors_servo_fix, _x.right_electromotor_rate, _x.right_electromotors_servo_anglex, _x.right_electromotors_servo_angley, _x.right_electromotors_servo_fix))
     except struct.error as se: self._check_types(se)
     except TypeError as te: self._check_types(te)
 
@@ -130,8 +147,8 @@ bool right_electromotors_servo_fix
       end = 0
       _x = self
       start = end
-      end += 44
-      (_x.left_engine_rate, _x.left_engine_servo_angle, _x.left_engine_servo_fix, _x.right_engine_rate, _x.right_engine_servo_angle, _x.right_engine_servo_fix, _x.left_electromotor_rate, _x.left_electromotors_servo_anglex, _x.left_electromotors_servo_angley, _x.left_electromotors_servo_fix, _x.right_electromotor_rate, _x.right_electromotors_servo_anglex, _x.right_electromotors_servo_angley, _x.right_electromotors_servo_fix,) = _struct_2fB2fB3fB3fB.unpack(str[start:end])
+      end += 46
+      (_x.left_engine_control_regime, _x.left_engine_control, _x.left_engine_servo_angle, _x.left_engine_servo_fix, _x.right_engine_control_regime, _x.right_engine_control, _x.right_engine_servo_angle, _x.right_engine_servo_fix, _x.left_electromotor_rate, _x.left_electromotors_servo_anglex, _x.left_electromotors_servo_angley, _x.left_electromotors_servo_fix, _x.right_electromotor_rate, _x.right_electromotors_servo_anglex, _x.right_electromotors_servo_angley, _x.right_electromotors_servo_fix,) = _struct_b2fBb2fB3fB3fB.unpack(str[start:end])
       self.left_engine_servo_fix = bool(self.left_engine_servo_fix)
       self.right_engine_servo_fix = bool(self.right_engine_servo_fix)
       self.left_electromotors_servo_fix = bool(self.left_electromotors_servo_fix)
@@ -149,7 +166,7 @@ bool right_electromotors_servo_fix
     """
     try:
       _x = self
-      buff.write(_struct_2fB2fB3fB3fB.pack(_x.left_engine_rate, _x.left_engine_servo_angle, _x.left_engine_servo_fix, _x.right_engine_rate, _x.right_engine_servo_angle, _x.right_engine_servo_fix, _x.left_electromotor_rate, _x.left_electromotors_servo_anglex, _x.left_electromotors_servo_angley, _x.left_electromotors_servo_fix, _x.right_electromotor_rate, _x.right_electromotors_servo_anglex, _x.right_electromotors_servo_angley, _x.right_electromotors_servo_fix))
+      buff.write(_struct_b2fBb2fB3fB3fB.pack(_x.left_engine_control_regime, _x.left_engine_control, _x.left_engine_servo_angle, _x.left_engine_servo_fix, _x.right_engine_control_regime, _x.right_engine_control, _x.right_engine_servo_angle, _x.right_engine_servo_fix, _x.left_electromotor_rate, _x.left_electromotors_servo_anglex, _x.left_electromotors_servo_angley, _x.left_electromotors_servo_fix, _x.right_electromotor_rate, _x.right_electromotors_servo_anglex, _x.right_electromotors_servo_angley, _x.right_electromotors_servo_fix))
     except struct.error as se: self._check_types(se)
     except TypeError as te: self._check_types(te)
 
@@ -163,8 +180,8 @@ bool right_electromotors_servo_fix
       end = 0
       _x = self
       start = end
-      end += 44
-      (_x.left_engine_rate, _x.left_engine_servo_angle, _x.left_engine_servo_fix, _x.right_engine_rate, _x.right_engine_servo_angle, _x.right_engine_servo_fix, _x.left_electromotor_rate, _x.left_electromotors_servo_anglex, _x.left_electromotors_servo_angley, _x.left_electromotors_servo_fix, _x.right_electromotor_rate, _x.right_electromotors_servo_anglex, _x.right_electromotors_servo_angley, _x.right_electromotors_servo_fix,) = _struct_2fB2fB3fB3fB.unpack(str[start:end])
+      end += 46
+      (_x.left_engine_control_regime, _x.left_engine_control, _x.left_engine_servo_angle, _x.left_engine_servo_fix, _x.right_engine_control_regime, _x.right_engine_control, _x.right_engine_servo_angle, _x.right_engine_servo_fix, _x.left_electromotor_rate, _x.left_electromotors_servo_anglex, _x.left_electromotors_servo_angley, _x.left_electromotors_servo_fix, _x.right_electromotor_rate, _x.right_electromotors_servo_anglex, _x.right_electromotors_servo_angley, _x.right_electromotors_servo_fix,) = _struct_b2fBb2fB3fB3fB.unpack(str[start:end])
       self.left_engine_servo_fix = bool(self.left_engine_servo_fix)
       self.right_engine_servo_fix = bool(self.right_engine_servo_fix)
       self.left_electromotors_servo_fix = bool(self.left_electromotors_servo_fix)
@@ -174,7 +191,7 @@ bool right_electromotors_servo_fix
       raise genpy.DeserializationError(e) #most likely buffer underfill
 
 _struct_I = genpy.struct_I
-_struct_2fB2fB3fB3fB = struct.Struct("<2fB2fB3fB3fB")
+_struct_b2fBb2fB3fB3fB = struct.Struct("<b2fBb2fB3fB3fB")
 """autogenerated by genpy from actuators/SetMotorsControlResponse.msg. Do not edit."""
 import sys
 python3 = True if sys.hexversion > 0x03000000 else False
@@ -187,6 +204,7 @@ class SetMotorsControlResponse(genpy.Message):
   _type = "actuators/SetMotorsControlResponse"
   _has_header = False #flag to mark the presence of a Header object
   _full_text = """uint8 result
+
 
 """
   __slots__ = ['result']
@@ -275,6 +293,6 @@ _struct_I = genpy.struct_I
 _struct_B = struct.Struct("<B")
 class SetMotorsControl(object):
   _type          = 'actuators/SetMotorsControl'
-  _md5sum = '157e71e636f411960c58c1b6f86ed290'
+  _md5sum = '7e7fee36083825f6c01fdb01a5419a6d'
   _request_class  = SetMotorsControlRequest
   _response_class = SetMotorsControlResponse

@@ -10,22 +10,113 @@
 
 #include <canfestival.h>
 
+#include "actuators-types.h"
+
 // ensure everything is 1 byte aligned
 #pragma pack(push,1)
+
+union generator_205 {
+	struct {
+		UNS8 left_generator_start;
+		UNS8 right_generator_start;
+	};
+	INTEGER64 data;
+};
+CTASSERT(sizeof(union generator_205) == 8);
+
+union power_distribution_relay_305 {
+	enum {
+		AUTOMATIC = 0xAF,
+		MANUAL = 0xBF
+	};
+	enum {
+		ON = 0xA,
+		OFF = 0x5
+	};
+	enum {
+		BACKUP_AND_FAILSAFE_PARALLEL = 0x0A,
+		BACKUP_MANUAL_AND_FAILSAFE_AUTOMATIC = 0x05
+	};
+	struct {
+		// byte 0
+		UNS8 control_type;
+
+		// byte 1
+		UNS8 right_power_equipment  :4;
+		UNS8 left_power_equipment   :4;
+
+		// byte 2
+		UNS8 right_pressure_control :4;
+		UNS8 left_pressure_control  :4;
+
+		// byte 3
+		UNS8 tail_270v_power_distribution: 4;
+		UNS8 tail_28v_power_distribution:  4;
+
+		// byte 4
+		UNS8 top_signal_lights           :4;
+		UNS8 backup_and_failsafe_battery :4;
+
+		// byte 5
+		UNS8 load_power           :4;
+		UNS8 bottom_signal_lights :4;
+
+		// byte 6
+		UNS8 reserved_1;
+
+		// byte 7
+		UNS8 reserved_2;
+	};
+	INTEGER64 data;
+};
+CTASSERT(sizeof(union power_distribution_relay_305) == 8);
+
+union left_main_engine_rotation_20A {
+	struct {
+		INTEGER16 left_main_engine_rotation_angle;
+		UNS8 left_main_engine_rotation_fix;
+	};
+	INTEGER64 data;
+};
+
+union right_main_engine_rotation_20B {
+	struct {
+		INTEGER16 right_main_engine_rotation_angle;
+		UNS8 right_main_engine_rotation_fix;
+	};
+	INTEGER64 data;
+};
+
+union left_main_engine_rotation_30A {
+	struct {
+		INTEGER16 left_main_engine_rotation_angle;
+		UNS16 reserved;
+	};
+	INTEGER64 data;
+};
+
+union right_main_engine_rotation_30B {
+	struct {
+		INTEGER16 right_main_engine_rotation_angle;
+		UNS16 reserved;
+	};
+	INTEGER64 data;
+};
 
 union tail_electromotor_207 {
 #define ELECTROMOTOR_START 0xAA
 #define ELECTROMOTOR_STOP 0x55
 	struct {
-		uint8_t startstop;
+		UNS8 left_electromotor_startstop;
+		UNS8 right_electromotor_startstop;
 	};
 	INTEGER64 data;
 };
 
 union tail_electromotor_307 {
 	struct {
-		uint16_t left_electomotor_rate;
-		uint16_t right_electromotor_rate;
+		UNS16 left_electomotor_rate;
+		UNS16 right_electromotor_rate;
 	};
 	INTEGER64 data;
 };
@@ -34,10 +125,162 @@ union tail_electromotor_407 {
 #define DO_FIX 0xAA
 #define NO_FIX 0x55
 	struct {
-		int16_t tail_engine_rotation_X_angle;
-		int16_t tail_engine_rotation_Y_angle;
-		uint8_t tail_engine_rotation_X_fix;
-		uint8_t tail_engine_rotation_Y_fix;
+		INTEGER16 tail_engine_rotation_X_angle;
+		INTEGER16 tail_engine_rotation_Y_angle;
+		UNS8 tail_engine_rotation_X_fix;
+		UNS8 tail_engine_rotation_Y_fix;
+	};
+	INTEGER64 data;
+};
+
+// посылаем 1 раз
+// посылаем 3 раз
+union left_main_engine_208_request {
+	struct {
+		UNS8 start_stop;
+	};
+	INTEGER64 data;
+};
+
+// приходит 2 раз
+union left_main_engine_188_response {
+	struct {
+		UNS8 start_stop;
+	};
+	INTEGER64 data;
+};
+
+// посылаем 1 раз
+// посылаем 3 раз
+union right_main_engine_209_request {
+	struct {
+		UNS8 start_stop;
+	};
+	INTEGER64 data;
+};
+
+// приходит 2 раз
+union left_main_engine_189_response {
+	struct {
+		UNS8 start_stop;
+	};
+	INTEGER64 data;
+};
+
+union left_main_engine_308 {
+	struct {
+		UNS8 regime; // 0xAA == rate, 0x55 == throttle
+		UNS8 reserved;
+		UNS16 rate;
+		UNS16 throttle;
+	};
+	INTEGER64 data;
+};
+
+union right_main_engine_309 {
+	struct {
+		UNS8 regime; // 0xAA == rate, 0x55 == throttle
+		UNS8 reserved;
+		UNS16 rate;
+		UNS16 throttle;
+	};
+	INTEGER64 data;
+};
+
+union left_main_engine_312 {
+	struct main_engine_relay_command control;
+	INTEGER64 data;
+};
+
+union right_main_engine_313 {
+	struct main_engine_relay_command control;
+	INTEGER64 data;
+};
+
+union left_ballonet_20c {
+	struct {
+		UNS16 left_ballonet_upper_pressure_threshold;
+		UNS16 left_ballonet_upper_pressure_delta;
+	};
+	INTEGER64 data;
+};
+
+union right_ballonet_20d {
+	struct {
+		UNS16 right_ballonet_upper_pressure_threshold;
+		UNS16 right_ballonet_upper_pressure_delta;
+	};
+	INTEGER64 data;
+};
+
+union left_ballonet_30c {
+	struct {
+		UNS16 left_ballonet_lower_pressure_threshold;
+		UNS16 left_ballonet_lower_pressure_delta;
+	};
+	INTEGER64 data;
+};
+
+union right_ballonet_30d {
+	struct {
+		UNS16 right_ballonet_lower_pressure_threshold;
+		UNS16 right_ballonet_lower_pressure_delta;
+	};
+	INTEGER64 data;
+};
+
+union left_ballonet_40c {
+	struct {
+		UNS8 left_ballonet_valve;
+
+		UNS8 reserved_1;
+
+		UNS8 left_ballonet_fan1;
+
+		UNS8 reserved_2;
+
+		UNS8 left_ballonet_fan2;
+
+		UNS8 reserved_3;
+
+		UNS8 left_ballonet_light;
+
+		UNS8 reserved_4;
+	};
+	INTEGER64 data;
+};
+
+union right_ballonet_40d {
+	struct {
+		UNS8 right_ballonet_valve;
+
+		UNS8 reserved_1;
+
+		UNS8 right_ballonet_fan1;
+
+		UNS8 reserved_2;
+
+		UNS8 right_ballonet_fan2;
+
+		UNS8 reserved_3;
+
+		UNS8 right_ballonet_light;
+
+		UNS8 reserved_4;
+	};
+	INTEGER64 data;
+};
+
+union left_ballonet_50c {
+	struct {
+		UNS16 regime;
+	};
+	INTEGER64 data;
+};
+
+union right_ballonet_50d {
+	struct {
+		UNS16 regime;
 	};
 	INTEGER64 data;
 };
@@ -148,83 +391,96 @@ struct data_4003_20 {
 
 struct data_4004_20 {};
 
-struct data_4005_21 {
-	// 1A
-	UNS8 left_electromotor_output_current;
-
-	// 1V
-	UNS16 left_electromotor_output_voltage;
-
-	// 1A
-	UNS8 right_electromotor_output_current;
-
-	// 1V
-	UNS16 right_electromotor_output_voltage;
-
-	UNS8 electromotor_relay_status;
-
-	// 0.1 V
-	UNS16 power_failsafe_28V_voltage;
+struct PACKED data_4005_21 {
+	// 0.1A
+	UNS16 _01_left_main_engine_generator_output_current;
 
 	// 0.1V
-	UNS16 power_aux_28V_voltage;
+	UNS16 _02_left_main_engine_generator_output_voltage;
 
-	// 1A
-	UNS8 left_ballonet_current;
-
-	// 1A
-	UNS8 right_ballonet_current;
-
-	// 1A
-	UNS8 power_tail_supply_current_28V;
-
-	// 1A "отсев"
-	UNS8 power_dropout_supply_current_28V;
-
-	// 1A
-	UNS8 power_board_supply_current_28V;
-
-	// ?
-	UNS16 power_distributor;
+	// 0.1A
+	UNS16 _03_right_main_engine_generator_output_current;
 
 	// 0.1V
-	UNS16 power_backup_voltage;
+	UNS16 _04_right_main_engine_generator_output_voltage;
 
-	// 1A
-	UNS8 power_backup_current;
+	// 0.1A
+	UNS16 _05_left_ballonet_control_current;
 
-	// 1A "разрядный ток"
-	UNS8 power_backup_current_drain;
+	// 0.1A
+	UNS16 _06_right_ballonet_control_current;
 
-	// %?
-	UNS8 power_backup_capacity;
+	// 0,1A
+	UNS16 _07_power_section_28v_power_equipment_current;
 
-	UNS16 power_backup_status;
+	// 0,1A
+	UNS16 _08_tail_section_28v_power_equipment_current;
 
 	// 0.1V
-	UNS16 power_failsafe_voltage;
+	UNS16 _09_bus_backup_28v_voltage;
 
-	// 1A
-	UNS8 power_failsafe_charge_current;
+	// 0,1V
+	UNS16 _10_failsafe_28v_voltage;
 
-	// 1A
-	UNS8 power_failsafe_drain_current;
+	// 0.1V
+	UNS16 _11_backup_battery_voltage;
 
-	UNS8 power_failsafe_capacity;
+	// 0,1V
+	UNS16 _12_failsafe_battery_voltage;
 
-	UNS16 power_failsafe_status;
+	// 0.1A
+	UNS16 _13_backup_battery_charge_current;
 
-	// 1A
-	UNS8 power_charger_1_output_current;
+	// 0.1A
+	UNS16 _14_backup_battery_discharge_current;
 
-	UNS8 power_charger_1_status;
+	// 1C
+	UNS16 _15_backup_battery_monoblock_temperature;
 
-	UNS8 power_charger_2_output_current;
+	// примечание 1
+	struct backup_battery_state _16_backup_battery_failure_state;
 
-	UNS8 power_charger_2_status;
+	// 0.1A
+	UNS16 _17_failsafe_battery_charge_current;
 
-	UNS32 reserved;
+	// 0.1A
+	UNS16 _18_failsafe_battery_discharge_current;
+
+	// 1C
+	UNS16 _19_failsafe_battery_monoblock_temperature;
+
+	// примечание 2
+	struct failsafe_battery_state _20_failsafe_battery_failure_state;
+
+	// 0.1A
+	UNS16 _21_left_charge_device_output_current;
+
+	// reserved
+	UNS16 _22_left_charge_device_state;
+
+	// 0.1A
+	UNS16 _23_right_charge_device_output_current;
+
+	// reserved
+	UNS16 _24_right_charge_device_state;
+
+	// примечание 3
+	struct power_distribution_relay_state _25_distribution_relay_state;
+
+	// 0.1A
+	UNS16 _26_load_equipment_28v_current;
+
+	// примечание 4
+	struct power_distribution_line_failure _27_distribution_lines_failure_state;
 };
+CTASSERT(sizeof(UNS16) == 2);
+CTASSERT(sizeof(struct backup_battery_state) == 2);
+CTASSERT(sizeof(struct main_engine_relay_state) == 2);
+CTASSERT(sizeof(struct main_engine_relay_command) == 8);
+CTASSERT(sizeof(struct power_distribution_relay_state) == 2);
+CTASSERT(sizeof(struct power_distribution_line_failure) == 2);
+CTASSERT(sizeof(struct failsafe_battery_state) == 2);
+CTASSERT(sizeof(struct data_4005_21) == 2 * 27);
 
 struct data_4007_20 {
 	// * 1
@@ -278,7 +534,7 @@ struct data_4007_21 {
 
 struct data_4008_20 {
 	// 1 rpm
-	UNS16 left_electromotor_rate;
+	UNS16 left_main_engine_rate;
 
 	// 0.1%
 	UNS16 left_main_engine_fuel_level;
@@ -296,17 +552,20 @@ struct data_4008_20 {
 	UNS16 left_main_engine_cylinder_2_temperature;
 
 	// 0.1 degree
-	UNS16 left_main_engine_throttle_1;
+	UNS16 left_main_engine_throttle_1_angle;
 
 	// 0.1 degree
-	UNS16 left_main_engine_throttle_2;
+	UNS16 left_main_engine_throttle_2_angle;
 
-	INTEGER32 reserved;
+	// состояние реле
+	struct main_engine_relay_state left_main_engine_relay_state;
+
+	UNS16 reserved;
 };
 
 struct data_4009_20 {
 	// 1 rpm
-	UNS16 right_electromotor_rate;
+	UNS16 right_main_engine_rate;
 
 	// 0.1%
 	UNS16 right_main_engine_fuel_level;
@@ -324,33 +583,42 @@ struct data_4009_20 {
 	UNS16 right_main_engine_cylinder_2_temperature;
 
 	// 0.1 degree
-	UNS16 right_main_engine_throttle_1;
+	UNS16 right_main_engine_throttle_1_angle;
 
 	// 0.1 degree
-	UNS16 right_main_engine_throttle_2;
+	UNS16 right_main_engine_throttle_2_angle;
 
-	INTEGER32 reserved;
+	struct main_engine_relay_state right_main_engine_relay_state;
+
+	UNS16 reserved;
 };
 
 struct data_400a_20 {
 	// 0.01 degree
-	UNS16 left_main_engine_rotation_angle;
+	INTEGER16 left_main_engine_rotation_angle;
 
 	UNS16 reserved;
 };
 
 struct data_400a_21 {
+	// 0.1A
+	UNS16 left_main_engine_rotation_current;
 	// 0.1V
 	UNS16 left_main_engine_rotation_voltage;
-
-	UNS16 reserved;
 };
 
 struct data_400b_20 {
 	// 0.01 degree
-	UNS16 right_main_engine_rotation_angle;
+	INTEGER16 right_main_engine_rotation_angle;
 
 	UNS16 reserved;
+};
+
+struct data_400b_21 {
+	// 0.1A
+	UNS16 right_main_engine_rotation_current;
+	// 0.1V
+	UNS16 right_main_engine_rotation_voltage;
 };
 
 struct data_400c_20 {
@@ -360,9 +628,13 @@ struct data_400c_20 {
 	// 1 Pa
 	UNS16 left_ballonet_pressure_2;
 
+	UNS8 left_ballonet_lights_state;
+
+	UNS8 reserved;
+
 	UNS16 left_ballonet_control;
 
-	UNS16 reserved;
+	UNS16 left_ballonet_linear_valve_resistance;
 };
 
 struct data_400d_20 {
@@ -372,9 +644,13 @@ struct data_400d_20 {
 	// 1 Pa
 	UNS16 right_ballonet_pressure_2;
 
+	UNS8 right_ballonet_lights_state;
+
+	UNS8 reserved;
+
 	UNS16 right_ballonet_control;
 
-	UNS16 reserved;
+	UNS16 right_ballonet_linear_valve_resistance;
 };
 
 #pragma pack(pop)

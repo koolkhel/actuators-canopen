@@ -3,4 +3,5 @@ Header header
 # 
 float32 angle
 #  
-bool fix
+float32 current
+float32 voltage

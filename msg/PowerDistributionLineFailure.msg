@@ -1,0 +1,7 @@
+Header header
+
+uint8 bottom_signal_lights_failure
+uint8 top_signal_lights_failure
+uint8 tail_equipment_failure
+uint8 left_power_equipment_failure
+uint8 right_power_equipment_failure

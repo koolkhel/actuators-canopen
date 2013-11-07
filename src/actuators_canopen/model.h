@@ -8,6 +8,7 @@
 
 #include <pthread.h>
 #include <canfestival.h>
+
 #include "actuators-types.h"
 #include "actuators.h"
 
@@ -22,7 +23,6 @@ enum PACKED engine_fix {
 #define MAKE_GREEN "\e[32m"
 #define MAKE_BLUE "\e[34m"
 #define MAKE_YELLOW "\e[33m"
-
 
 /**
  * all domain level variables are grouped in one struct
@@ -130,81 +130,86 @@ struct actuators_model {
 
 
 	//struct data_4005_21
-	// 1A
-	UNS8 left_electromotor_output_current;
-
-	// 1V
-	UNS16 left_electromotor_output_voltage;
-
-	// 1A
-	UNS8 right_electromotor_output_current;
-
-	// 1V
-	UNS16 right_electromotor_output_voltage;
-
-	UNS8 electromotor_relay_status;
-
-	// 0.1 V
-	UNS16 power_failsafe_28V_voltage;
+	// 0.1A
+	float left_main_engine_generator_output_current;
 
 	// 0.1V
-	UNS16 power_aux_28V_voltage;
+	float left_main_engine_generator_output_voltage;
 
-	// 1A
-	UNS8 left_ballonet_current;
-
-	// 1A
-	UNS8 right_ballonet_current;
-
-	// 1A
-	UNS8 power_tail_supply_current_28V;
-
-	// 1A "отсев"
-	UNS8 power_dropout_supply_current_28V;
-
-	// 1A
-	UNS8 power_board_supply_current_28V;
-
-	// ?
-	UNS16 power_distributor;
+	// 0.1A
+	float right_main_engine_generator_output_current;
 
 	// 0.1V
-	UNS16 power_backup_voltage;
+	float right_main_engine_generator_output_voltage;
 
-	// 1A
-	UNS8 power_backup_current;
+	// 0.1A
+	float left_ballonet_control_current;
 
-	// 1A "разрядный ток"
-	UNS8 power_backup_current_drain;
+	// 0.1A
+	float right_ballonet_control_current;
 
-	// %?
-	UNS8 power_backup_capacity;
+	// 0,1A
+	float power_section_28v_power_equipment_current;
 
-	UNS16 power_backup_status;
+	// 0,1A
+	float tail_section_28v_power_equipment_current;
 
 	// 0.1V
-	UNS16 power_failsafe_voltage;
+	float bus_backup_28v_voltage;
 
-	// 1A
-	UNS8 power_failsafe_charge_current;
+	// 0,1V
+	float failsafe_28v_voltage;
 
-	// 1A
-	UNS8 power_failsafe_drain_current;
+	// 0.1V
+	float backup_battery_voltage;
 
-	UNS8 power_failsafe_capacity;
+	// 0,1V
+	float failsafe_battery_voltage;
 
-	UNS16 power_failsafe_status;
+	// 0.1A
+	float backup_battery_charge_current;
 
-	// 1A
-	UNS8 power_charger_1_output_current;
+	// 0.1A
+	float backup_battery_discharge_current;
 
-	UNS8 power_charger_1_status;
+	// 1C
+	float backup_battery_monoblock_temperature;
 
-	UNS8 power_charger_2_output_current;
+	// примечание 1
+	struct backup_battery_state backup_battery_failure_state;
 
-	UNS8 power_charger_2_status;
+	// 0.1A
+	float failsafe_battery_charge_current;
 
-	UNS32 reserved;
+	// 0.1A
+	float failsafe_battery_discharge_current;
+
+	// 1C
+	float failsafe_battery_monoblock_temperature;
+
+	// примечание 2
+	struct failsafe_battery_state failsafe_battery_failure_state;
+
+	// 0.1A
+	float left_charge_device_output_current;
+
+	// reserved
+	float left_charge_device_state;
+
+	// 0.1A
+	float right_charge_device_output_current;
+
+	// reserved
+	float right_charge_device_state;
+
+	// примечание 3
+	struct power_distribution_relay_state distribution_relay_state;
+
+	// 0.1A
+	float load_equipment_28v_current;
+
+	// примечание 4
+	struct power_distribution_line_failure distribution_lines_failure_state;
 
 
 	// struct data_4007_20
@@ -214,123 +219,130 @@ struct actuators_model {
 	UNS16 right_electromotor_rate;
 
 	// / 100
-	INTEGER16 left_electromotor_angle_Y;
+	float left_electromotor_angle_Y;
 
 	// / 100
-	INTEGER16 right_electromotor_angle_Y;
+	float right_electromotor_angle_Y;
 
 	// / 100
-	INTEGER16 left_electromotor_angle_X;
+	float left_electromotor_angle_X;
 
 	// / 100
-	INTEGER16 right_electromotor_angle_X;
+	float right_electromotor_angle_X;
 
 	INTEGER32 reserved_2;
 
 
 	//struct data_4007_21 {
 	// / 10 V
-	UNS16 left_electromotor_voltage;
+	float left_electromotor_voltage;
 
 	// / 10 V
-	UNS16 right_electromotor_voltage;
+	float right_electromotor_voltage;
 
 	// / 10 A
-	UNS16 left_electromotor_current;
+	float left_electromotor_current;
 
 	// / 10 A
-	UNS16 right_electromotor_current;
+	float right_electromotor_current;
 
 	// / 10 C
-	INTEGER16 left_electromotor_temperature;
+	float left_electromotor_temperature;
 
 	// / 10 C
-	INTEGER16 right_electromotor_temperature;
+	float right_electromotor_temperature;
 
 	// / 10 C
-	INTEGER16 left_electromotor_rotation_temperature;
+	float left_electromotor_rotation_temperature;
 
 	// / 10 C
-	INTEGER16 right_electromotor_rotation_temperature;
+	float right_electromotor_rotation_temperature;
 
 	INTEGER32 reserved_3;
 
 
 	// struct data_4008_20
 	// 1 rpm
-	//UNS16 left_electromotor_rate;
+	UNS16 left_main_engine_rate;
 
 	// 0.1%
-	UNS16 left_main_engine_fuel_level;
+	float left_main_engine_fuel_level;
 
 	// 0.1%
-	UNS16 left_main_engine_aux_fuel_level;
+	float left_main_engine_aux_fuel_level;
 
 	// 0.1 C
-	UNS16 left_main_engine_exhaust_temperature;
+	float left_main_engine_exhaust_temperature;
 
 	// 0.1 C
-	UNS16 left_main_engine_cylinder_1_temperature;
+	float left_main_engine_cylinder_1_temperature;
 
 	// 0.1 C
-	UNS16 left_main_engine_cylinder_2_temperature;
+	float left_main_engine_cylinder_2_temperature;
 
 	// 0.1 degree
-	UNS16 left_main_engine_throttle_1;
+	float left_main_engine_throttle_1_angle;
 
 	// 0.1 degree
-	UNS16 left_main_engine_throttle_2;
+	float left_main_engine_throttle_2_angle;
 
-	INTEGER32 reserved_4;
+	struct main_engine_relay_state left_main_engine_relay_state;
+
+	INTEGER16 reserved_4;
 
 
 	//struct data_4009_20
 	// 1 rpm
-	//UNS16 right_electromotor_rate;
+	UNS16 right_main_engine_rate;
 
 	// 0.1%
-	UNS16 right_main_engine_fuel_level;
+	float right_main_engine_fuel_level;
 
 	// 0.1%
-	UNS16 right_main_engine_aux_fuel_level;
+	float right_main_engine_aux_fuel_level;
 
 	// 0.1 C
-	UNS16 right_main_engine_exhaust_temperature;
+	float right_main_engine_exhaust_temperature;
 
 	// 0.1 C
-	UNS16 right_main_engine_cylinder_1_temperature;
+	float right_main_engine_cylinder_1_temperature;
 
 	// 0.1 C
-	UNS16 right_main_engine_cylinder_2_temperature;
+	float right_main_engine_cylinder_2_temperature;
 
 	// 0.1 degree
-	UNS16 right_main_engine_throttle_1;
+	float right_main_engine_throttle_1_angle;
 
 	// 0.1 degree
-	UNS16 right_main_engine_throttle_2;
+	float right_main_engine_throttle_2_angle;
 
-	INTEGER32 reserved_5;
+	struct main_engine_relay_state right_main_engine_relay_state;
+
+	INTEGER16 reserved_5;
 
 
 	//struct data_400a_20
 	// 0.01 degree
-	UNS16 left_main_engine_rotation_angle;
+	float left_main_engine_rotation_angle;
 
-	UNS16 reserved_6;
+
 
 
 	//struct data_400a_21
 	// 0.1V
-	UNS16 left_main_engine_rotation_voltage;
+	float left_main_engine_rotation_voltage;
 
-	UNS16 reserved_7;
+	float left_main_engine_rotation_current;
 
 
 	// struct data_400b_20
 	// 0.01 degree
-	UNS16 right_main_engine_rotation_angle;
+	float right_main_engine_rotation_angle;
 
-	UNS16 reserved_8;
+	// struct data_400b_21
+	float right_main_engine_rotation_current;
+
+	float right_main_engine_rotation_voltage;
 
 
 	//struct data_400c_20
@@ -340,21 +352,26 @@ struct actuators_model {
 	// 1 Pa
 	UNS16 left_ballonet_pressure_2;
 
+	UNS16 left_ballonet_lights_state;
+
 	UNS16 left_ballonet_control;
 
-	UNS16 reserved_9;
+	float left_ballonet_linear_valve_resistance;
 
 
 	// struct data_400d_20
 	// 1Pa
 	UNS16 right_ballonet_pressure_1;
 
+	//
+	UNS16 right_ballonet_lights_state;
+
 	// 1 Pa
 	UNS16 right_ballonet_pressure_2;
 
 	UNS16 right_ballonet_control;
 
-	UNS16 reserved_10;
+	float right_ballonet_linear_valve_resistance;
 };
 
 extern pthread_mutex_t REPORTED_DATA_lock;

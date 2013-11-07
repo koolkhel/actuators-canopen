@@ -1,0 +1,27 @@
+byte CONTROL_TYPE_AUTOMATIC = 0 # 0xAF
+byte CONTROL_TYPE_MANUAL = 1    # 0xBF
+
+byte BATTERY_BACKUP_AND_FAILSAFE = 0              # 0x0a
+byte BATTERY_BACKUP_MANUAL_FAILSAFE_AUTOMATIC = 1 # 0x0b
+
+uint8 control_type
+
+uint8 right_power_equipment
+uint8 left_power_equipment
+
+uint8 right_pressure_control
+uint8 left_pressure_control
+
+uint8 tail_270v_power_distribution
+uint8 tail_28v_power_distribution
+
+uint8 top_signal_lights
+uint8 backup_and_failsafe_battery
+
+uint8 load_power
+uint8 bottom_signal_lights
+
+uint8 reserved_1
+uint8 reserved_2
+---
+uint8 result

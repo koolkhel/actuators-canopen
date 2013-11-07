@@ -39,25 +39,23 @@ UNS8 _getIndexSubindex(CO_Data *d, UNS8 nodeId, UNS16 *index, UNS8 *subindex) {
 	/* First let's find the corresponding SDO client in our OD  */
 	CliNbr = GetSDOClientFromNodeId(d, nodeId);
 	if (CliNbr >= 0xFE) {
-		printf("couldn't find client\n");
+        printf("no client found by GetSDOClientFromNodeId for nodeId %hhu\n", nodeId);
 		err = 1;
 		goto out;
-		//index = 0;
-		//*index = 5; // to fall with a core dump
 	}
 
 	/* Looking for the line tranfert. */
 	err = getSDOlineOnUse(d, CliNbr, SDO_CLIENT, &line);
 	if (err) {
-		printf("couldn't find SDO line in use, aborting\n");
-		//index = 0;
-		//*index = 5; // >:-[
+        printf("no SDO line in use for nodeId %hhu\n", nodeId);
+        *index = 0;
+        *subindex = 0;
 	} else {
 		*index = d->transfers[line].index;
 		*subindex = d->transfers[line].subIndex;
-		//	printf("found index %04hX subindex %02hhx\n", *index, *subindex);
 	}
 
 out:
+    printf("_get_IndexSubindex returning err %hhd\n", err);
 	return err;
 }

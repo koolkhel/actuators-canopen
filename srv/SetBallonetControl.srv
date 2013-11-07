@@ -1,5 +1,6 @@
 bool fan1 
 bool fan2 
 bool valve 
+bool light
 ---
 uint8 result

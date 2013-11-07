@@ -8,24 +8,25 @@ import actuators.msg
 import std_msgs.msg
 
 class ElectromotorsStateExt(genpy.Message):
-  _md5sum = "14b11ded2ebed98599d9eb9bfddc0be9"
+  _md5sum = "52e7da340c19977961fab57edfb9e77a"
   _type = "actuators/ElectromotorsStateExt"
   _has_header = True #flag to mark the presence of a Header object
   _full_text = """Header header
 
 ElectromotorsState basic_state
 
-uint16 bus_voltage_left # bus voltage of the left el.dv.
-uint8 bus_current_left # electric current bus left el.dv.
-uint8 temperature_radiator_driver_left # radiator temperature of the driver left el.dv.
-uint8 temperature_shell_left # Kozhukhovo the temperature of the left el.dv.
-uint16 bus_voltage_right # bus voltage right el.dv.
-uint8 bus_current_right # electric current bus right el.dv.
-uint8 temperature_radiator_driver_right # radiator temperature of the driver right el.dv.
-uint8 temperature_shell_right # Kozhukhovo right temperature el.dv.
-uint8 errors_cnt # Number of Accidents (1 byte)
-uint8 errors_flag1 # high byte code crashes (1 byte)
-uint8 errors_flag2 # low byte code crashes (1 byte)
+float32 left_electromotor_voltage # bus voltage of the left el.dv.
+float32 left_electromotor_current # electric current bus left el.dv.
+
+float32 left_electromotor_temperature # radiator temperature of the driver left el.dv.
+float32 left_electromotor_servo_temperature # Kozhukhovo the temperature of the left el.dv.
+
+float32 right_electromotor_voltage # bus voltage right el.dv.
+float32 right_electromotor_current # electric current bus right el.dv.
+
+float32 right_electromotor_temperature # radiator temperature of the driver right el.dv.
+float32 right_electromotor_servo_temperature # Kozhukhovo right temperature el.dv.
+
 ================================================================================
 MSG: std_msgs/Header
 # Standard metadata for higher-level stamped data types.
@@ -68,8 +69,8 @@ float32 angley
 #  
 bool fix
 """
-  __slots__ = ['header','basic_state','bus_voltage_left','bus_current_left','temperature_radiator_driver_left','temperature_shell_left','bus_voltage_right','bus_current_right','temperature_radiator_driver_right','temperature_shell_right','errors_cnt','errors_flag1','errors_flag2']
-  _slot_types = ['std_msgs/Header','actuators/ElectromotorsState','uint16','uint8','uint8','uint8','uint16','uint8','uint8','uint8','uint8','uint8','uint8']
+  __slots__ = ['header','basic_state','left_electromotor_voltage','left_electromotor_current','left_electromotor_temperature','left_electromotor_servo_temperature','right_electromotor_voltage','right_electromotor_current','right_electromotor_temperature','right_electromotor_servo_temperature']
+  _slot_types = ['std_msgs/Header','actuators/ElectromotorsState','float32','float32','float32','float32','float32','float32','float32','float32']
 
   def __init__(self, *args, **kwds):
     """
@@ -79,7 +80,7 @@ bool fix
     changes.  You cannot mix in-order arguments and keyword arguments.
 
     The available fields are:
-       header,basic_state,bus_voltage_left,bus_current_left,temperature_radiator_driver_left,temperature_shell_left,bus_voltage_right,bus_current_right,temperature_radiator_driver_right,temperature_shell_right,errors_cnt,errors_flag1,errors_flag2
+       header,basic_state,left_electromotor_voltage,left_electromotor_current,left_electromotor_temperature,left_electromotor_servo_temperature,right_electromotor_voltage,right_electromotor_current,right_electromotor_temperature,right_electromotor_servo_temperature
 
     :param args: complete set of field values, in .msg order
     :param kwds: use keyword arguments corresponding to message field names
@@ -92,42 +93,33 @@ bool fix
         self.header = std_msgs.msg.Header()
       if self.basic_state is None:
         self.basic_state = actuators.msg.ElectromotorsState()
-      if self.bus_voltage_left is None:
-        self.bus_voltage_left = 0
-      if self.bus_current_left is None:
-        self.bus_current_left = 0
-      if self.temperature_radiator_driver_left is None:
-        self.temperature_radiator_driver_left = 0
-      if self.temperature_shell_left is None:
-        self.temperature_shell_left = 0
-      if self.bus_voltage_right is None:
-        self.bus_voltage_right = 0
-      if self.bus_current_right is None:
-        self.bus_current_right = 0
-      if self.temperature_radiator_driver_right is None:
-        self.temperature_radiator_driver_right = 0
-      if self.temperature_shell_right is None:
-        self.temperature_shell_right = 0
-      if self.errors_cnt is None:
-        self.errors_cnt = 0
-      if self.errors_flag1 is None:
-        self.errors_flag1 = 0
-      if self.errors_flag2 is None:
-        self.errors_flag2 = 0
+      if self.left_electromotor_voltage is None:
+        self.left_electromotor_voltage = 0.
+      if self.left_electromotor_current is None:
+        self.left_electromotor_current = 0.
+      if self.left_electromotor_temperature is None:
+        self.left_electromotor_temperature = 0.
+      if self.left_electromotor_servo_temperature is None:
+        self.left_electromotor_servo_temperature = 0.
+      if self.right_electromotor_voltage is None:
+        self.right_electromotor_voltage = 0.
+      if self.right_electromotor_current is None:
+        self.right_electromotor_current = 0.
+      if self.right_electromotor_temperature is None:
+        self.right_electromotor_temperature = 0.
+      if self.right_electromotor_servo_temperature is None:
+        self.right_electromotor_servo_temperature = 0.
     else:
       self.header = std_msgs.msg.Header()
       self.basic_state = actuators.msg.ElectromotorsState()
-      self.bus_voltage_left = 0
-      self.bus_current_left = 0
-      self.temperature_radiator_driver_left = 0
-      self.temperature_shell_left = 0
-      self.bus_voltage_right = 0
-      self.bus_current_right = 0
-      self.temperature_radiator_driver_right = 0
-      self.temperature_shell_right = 0
-      self.errors_cnt = 0
-      self.errors_flag1 = 0
-      self.errors_flag2 = 0
+      self.left_electromotor_voltage = 0.
+      self.left_electromotor_current = 0.
+      self.left_electromotor_temperature = 0.
+      self.left_electromotor_servo_temperature = 0.
+      self.right_electromotor_voltage = 0.
+      self.right_electromotor_current = 0.
+      self.right_electromotor_temperature = 0.
+      self.right_electromotor_servo_temperature = 0.
 
   def _get_types(self):
     """
@@ -190,7 +182,7 @@ bool fix
         length = len(_x)
       buff.write(struct.pack('<I%ss'%length, length, _x))
       _x = self
-      buff.write(_struct_2fBH3BH6B.pack(_x.basic_state.right_em_servo.anglex, _x.basic_state.right_em_servo.angley, _x.basic_state.right_em_servo.fix, _x.bus_voltage_left, _x.bus_current_left, _x.temperature_radiator_driver_left, _x.temperature_shell_left, _x.bus_voltage_right, _x.bus_current_right, _x.temperature_radiator_driver_right, _x.temperature_shell_right, _x.errors_cnt, _x.errors_flag1, _x.errors_flag2))
+      buff.write(_struct_2fB8f.pack(_x.basic_state.right_em_servo.anglex, _x.basic_state.right_em_servo.angley, _x.basic_state.right_em_servo.fix, _x.left_electromotor_voltage, _x.left_electromotor_current, _x.left_electromotor_temperature, _x.left_electromotor_servo_temperature, _x.right_electromotor_voltage, _x.right_electromotor_current, _x.right_electromotor_temperature, _x.right_electromotor_servo_temperature))
     except struct.error as se: self._check_types(se)
     except TypeError as te: self._check_types(te)
 
@@ -286,8 +278,8 @@ bool fix
         self.basic_state.right_em_servo.header.frame_id = str[start:end]
       _x = self
       start = end
-      end += 22
-      (_x.basic_state.right_em_servo.anglex, _x.basic_state.right_em_servo.angley, _x.basic_state.right_em_servo.fix, _x.bus_voltage_left, _x.bus_current_left, _x.temperature_radiator_driver_left, _x.temperature_shell_left, _x.bus_voltage_right, _x.bus_current_right, _x.temperature_radiator_driver_right, _x.temperature_shell_right, _x.errors_cnt, _x.errors_flag1, _x.errors_flag2,) = _struct_2fBH3BH6B.unpack(str[start:end])
+      end += 41
+      (_x.basic_state.right_em_servo.anglex, _x.basic_state.right_em_servo.angley, _x.basic_state.right_em_servo.fix, _x.left_electromotor_voltage, _x.left_electromotor_current, _x.left_electromotor_temperature, _x.left_electromotor_servo_temperature, _x.right_electromotor_voltage, _x.right_electromotor_current, _x.right_electromotor_temperature, _x.right_electromotor_servo_temperature,) = _struct_2fB8f.unpack(str[start:end])
       self.basic_state.right_em_servo.fix = bool(self.basic_state.right_em_servo.fix)
       return self
     except struct.error as e:
@@ -350,7 +342,7 @@ bool fix
         length = len(_x)
       buff.write(struct.pack('<I%ss'%length, length, _x))
       _x = self
-      buff.write(_struct_2fBH3BH6B.pack(_x.basic_state.right_em_servo.anglex, _x.basic_state.right_em_servo.angley, _x.basic_state.right_em_servo.fix, _x.bus_voltage_left, _x.bus_current_left, _x.temperature_radiator_driver_left, _x.temperature_shell_left, _x.bus_voltage_right, _x.bus_current_right, _x.temperature_radiator_driver_right, _x.temperature_shell_right, _x.errors_cnt, _x.errors_flag1, _x.errors_flag2))
+      buff.write(_struct_2fB8f.pack(_x.basic_state.right_em_servo.anglex, _x.basic_state.right_em_servo.angley, _x.basic_state.right_em_servo.fix, _x.left_electromotor_voltage, _x.left_electromotor_current, _x.left_electromotor_temperature, _x.left_electromotor_servo_temperature, _x.right_electromotor_voltage, _x.right_electromotor_current, _x.right_electromotor_temperature, _x.right_electromotor_servo_temperature))
     except struct.error as se: self._check_types(se)
     except TypeError as te: self._check_types(te)
 
@@ -447,8 +439,8 @@ bool fix
         self.basic_state.right_em_servo.header.frame_id = str[start:end]
       _x = self
       start = end
-      end += 22
-      (_x.basic_state.right_em_servo.anglex, _x.basic_state.right_em_servo.angley, _x.basic_state.right_em_servo.fix, _x.bus_voltage_left, _x.bus_current_left, _x.temperature_radiator_driver_left, _x.temperature_shell_left, _x.bus_voltage_right, _x.bus_current_right, _x.temperature_radiator_driver_right, _x.temperature_shell_right, _x.errors_cnt, _x.errors_flag1, _x.errors_flag2,) = _struct_2fBH3BH6B.unpack(str[start:end])
+      end += 41
+      (_x.basic_state.right_em_servo.anglex, _x.basic_state.right_em_servo.angley, _x.basic_state.right_em_servo.fix, _x.left_electromotor_voltage, _x.left_electromotor_current, _x.left_electromotor_temperature, _x.left_electromotor_servo_temperature, _x.right_electromotor_voltage, _x.right_electromotor_current, _x.right_electromotor_temperature, _x.right_electromotor_servo_temperature,) = _struct_2fB8f.unpack(str[start:end])
       self.basic_state.right_em_servo.fix = bool(self.basic_state.right_em_servo.fix)
       return self
     except struct.error as e:
@@ -458,4 +450,4 @@ _struct_I = genpy.struct_I
 _struct_f3I = struct.Struct("<f3I")
 _struct_3I = struct.Struct("<3I")
 _struct_2fB3I = struct.Struct("<2fB3I")
-_struct_2fBH3BH6B = struct.Struct("<2fBH3BH6B")
+_struct_2fB8f = struct.Struct("<2fB8f")

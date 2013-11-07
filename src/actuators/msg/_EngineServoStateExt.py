@@ -8,7 +8,7 @@ import actuators.msg
 import std_msgs.msg
 
 class EngineServoStateExt(genpy.Message):
-  _md5sum = "9fdb46ee33952513c7b16eb75b5bc99f"
+  _md5sum = "cf61ca22c0b5918aec4dac8c8bf8f965"
   _type = "actuators/EngineServoStateExt"
   _has_header = True #flag to mark the presence of a Header object
   _full_text = """Header header
@@ -44,7 +44,9 @@ Header header
 # 
 float32 angle
 #  
-bool fix
+float32 current
+float32 voltage
+
 """
   __slots__ = ['header','basic_state','errors_cnt','errors_flag1','errors_flag2']
   _slot_types = ['std_msgs/Header','actuators/EngineServoState','uint8','uint8','uint8']
@@ -112,7 +114,7 @@ bool fix
         length = len(_x)
       buff.write(struct.pack('<I%ss'%length, length, _x))
       _x = self
-      buff.write(_struct_f4B.pack(_x.basic_state.angle, _x.basic_state.fix, _x.errors_cnt, _x.errors_flag1, _x.errors_flag2))
+      buff.write(_struct_3f3B.pack(_x.basic_state.angle, _x.basic_state.current, _x.basic_state.voltage, _x.errors_cnt, _x.errors_flag1, _x.errors_flag2))
     except struct.error as se: self._check_types(se)
     except TypeError as te: self._check_types(te)
 
@@ -155,9 +157,8 @@ bool fix
         self.basic_state.header.frame_id = str[start:end]
       _x = self
       start = end
-      end += 8
-      (_x.basic_state.angle, _x.basic_state.fix, _x.errors_cnt, _x.errors_flag1, _x.errors_flag2,) = _struct_f4B.unpack(str[start:end])
-      self.basic_state.fix = bool(self.basic_state.fix)
+      end += 15
+      (_x.basic_state.angle, _x.basic_state.current, _x.basic_state.voltage, _x.errors_cnt, _x.errors_flag1, _x.errors_flag2,) = _struct_3f3B.unpack(str[start:end])
       return self
     except struct.error as e:
       raise genpy.DeserializationError(e) #most likely buffer underfill
@@ -187,7 +188,7 @@ bool fix
         length = len(_x)
       buff.write(struct.pack('<I%ss'%length, length, _x))
       _x = self
-      buff.write(_struct_f4B.pack(_x.basic_state.angle, _x.basic_state.fix, _x.errors_cnt, _x.errors_flag1, _x.errors_flag2))
+      buff.write(_struct_3f3B.pack(_x.basic_state.angle, _x.basic_state.current, _x.basic_state.voltage, _x.errors_cnt, _x.errors_flag1, _x.errors_flag2))
     except struct.error as se: self._check_types(se)
     except TypeError as te: self._check_types(te)
 
@@ -231,13 +232,12 @@ bool fix
         self.basic_state.header.frame_id = str[start:end]
       _x = self
       start = end
-      end += 8
-      (_x.basic_state.angle, _x.basic_state.fix, _x.errors_cnt, _x.errors_flag1, _x.errors_flag2,) = _struct_f4B.unpack(str[start:end])
-      self.basic_state.fix = bool(self.basic_state.fix)
+      end += 15
+      (_x.basic_state.angle, _x.basic_state.current, _x.basic_state.voltage, _x.errors_cnt, _x.errors_flag1, _x.errors_flag2,) = _struct_3f3B.unpack(str[start:end])
       return self
     except struct.error as e:
       raise genpy.DeserializationError(e) #most likely buffer underfill
 
 _struct_I = genpy.struct_I
 _struct_3I = struct.Struct("<3I")
-_struct_f4B = struct.Struct("<f4B")
+_struct_3f3B = struct.Struct("<3f3B")

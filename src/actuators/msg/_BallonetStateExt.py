@@ -8,7 +8,7 @@ import actuators.msg
 import std_msgs.msg
 
 class BallonetStateExt(genpy.Message):
-  _md5sum = "21c7603dd8dc1c3b6ab642c811da493b"
+  _md5sum = "c6eabf33e8ccb380c973f70dbc487962"
   _type = "actuators/BallonetStateExt"
   _has_header = True #flag to mark the presence of a Header object
   _full_text = """Header header
@@ -49,7 +49,10 @@ bool fan1				#
 bool fan2				# 
 	
 bool valve				# 
-bool valve_helium		# 
+bool light		# 
+
+float32 linear_valve_resistance
+
 """
   __slots__ = ['header','basic_state','errors_cnt','errors_flag1','errors_flag2']
   _slot_types = ['std_msgs/Header','actuators/BallonetState','uint8','uint8','uint8']
@@ -117,7 +120,7 @@ bool valve_helium		#
         length = len(_x)
       buff.write(struct.pack('<I%ss'%length, length, _x))
       _x = self
-      buff.write(_struct_2d7B.pack(_x.basic_state.pressureDiff1, _x.basic_state.pressureDiff2, _x.basic_state.fan1, _x.basic_state.fan2, _x.basic_state.valve, _x.basic_state.valve_helium, _x.errors_cnt, _x.errors_flag1, _x.errors_flag2))
+      buff.write(_struct_2d4Bf3B.pack(_x.basic_state.pressureDiff1, _x.basic_state.pressureDiff2, _x.basic_state.fan1, _x.basic_state.fan2, _x.basic_state.valve, _x.basic_state.light, _x.basic_state.linear_valve_resistance, _x.errors_cnt, _x.errors_flag1, _x.errors_flag2))
     except struct.error as se: self._check_types(se)
     except TypeError as te: self._check_types(te)
 
@@ -160,12 +163,12 @@ bool valve_helium		#
         self.basic_state.header.frame_id = str[start:end]
       _x = self
       start = end
-      end += 23
-      (_x.basic_state.pressureDiff1, _x.basic_state.pressureDiff2, _x.basic_state.fan1, _x.basic_state.fan2, _x.basic_state.valve, _x.basic_state.valve_helium, _x.errors_cnt, _x.errors_flag1, _x.errors_flag2,) = _struct_2d7B.unpack(str[start:end])
+      end += 27
+      (_x.basic_state.pressureDiff1, _x.basic_state.pressureDiff2, _x.basic_state.fan1, _x.basic_state.fan2, _x.basic_state.valve, _x.basic_state.light, _x.basic_state.linear_valve_resistance, _x.errors_cnt, _x.errors_flag1, _x.errors_flag2,) = _struct_2d4Bf3B.unpack(str[start:end])
       self.basic_state.fan1 = bool(self.basic_state.fan1)
       self.basic_state.fan2 = bool(self.basic_state.fan2)
       self.basic_state.valve = bool(self.basic_state.valve)
-      self.basic_state.valve_helium = bool(self.basic_state.valve_helium)
+      self.basic_state.light = bool(self.basic_state.light)
       return self
     except struct.error as e:
       raise genpy.DeserializationError(e) #most likely buffer underfill
@@ -195,7 +198,7 @@ bool valve_helium		#
         length = len(_x)
       buff.write(struct.pack('<I%ss'%length, length, _x))
       _x = self
-      buff.write(_struct_2d7B.pack(_x.basic_state.pressureDiff1, _x.basic_state.pressureDiff2, _x.basic_state.fan1, _x.basic_state.fan2, _x.basic_state.valve, _x.basic_state.valve_helium, _x.errors_cnt, _x.errors_flag1, _x.errors_flag2))
+      buff.write(_struct_2d4Bf3B.pack(_x.basic_state.pressureDiff1, _x.basic_state.pressureDiff2, _x.basic_state.fan1, _x.basic_state.fan2, _x.basic_state.valve, _x.basic_state.light, _x.basic_state.linear_valve_resistance, _x.errors_cnt, _x.errors_flag1, _x.errors_flag2))
     except struct.error as se: self._check_types(se)
     except TypeError as te: self._check_types(te)
 
@@ -239,16 +242,16 @@ bool valve_helium		#
         self.basic_state.header.frame_id = str[start:end]
       _x = self
       start = end
-      end += 23
-      (_x.basic_state.pressureDiff1, _x.basic_state.pressureDiff2, _x.basic_state.fan1, _x.basic_state.fan2, _x.basic_state.valve, _x.basic_state.valve_helium, _x.errors_cnt, _x.errors_flag1, _x.errors_flag2,) = _struct_2d7B.unpack(str[start:end])
+      end += 27
+      (_x.basic_state.pressureDiff1, _x.basic_state.pressureDiff2, _x.basic_state.fan1, _x.basic_state.fan2, _x.basic_state.valve, _x.basic_state.light, _x.basic_state.linear_valve_resistance, _x.errors_cnt, _x.errors_flag1, _x.errors_flag2,) = _struct_2d4Bf3B.unpack(str[start:end])
       self.basic_state.fan1 = bool(self.basic_state.fan1)
       self.basic_state.fan2 = bool(self.basic_state.fan2)
       self.basic_state.valve = bool(self.basic_state.valve)
-      self.basic_state.valve_helium = bool(self.basic_state.valve_helium)
+      self.basic_state.light = bool(self.basic_state.light)
       return self
     except struct.error as e:
       raise genpy.DeserializationError(e) #most likely buffer underfill
 
 _struct_I = genpy.struct_I
 _struct_3I = struct.Struct("<3I")
-_struct_2d7B = struct.Struct("<2d7B")
+_struct_2d4Bf3B = struct.Struct("<2d4Bf3B")

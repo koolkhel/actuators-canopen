@@ -1,0 +1,12 @@
+Header header
+
+uint8 both_battery_power
+uint8 reserved
+uint8 bottom_signal_lights
+uint8 top_signal_lights
+uint8 load
+uint8 tail_28v_equipment
+uint8 right_pressure_control
+uint8 left_pressure_control
+uint8 right_power_equipment
+uint8 left_power_equipment

@@ -1,0 +1,4 @@
+uint8 left_generator_start
+uint8 right_generator_start
+---
+uint8 result

@@ -1,0 +1,4 @@
+bool left_electromotor_on
+bool right_electromotor_on
+---
+uint8 result

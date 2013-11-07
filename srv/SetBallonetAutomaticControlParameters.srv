@@ -1,0 +1,6 @@
+uint32 ballonet_upper_pressure_threshold
+uint32 ballonet_upper_pressure_delta
+uint32 ballonet_lower_pressure_threshold
+uint32 ballonet_lower_pressure_delta
+---
+uint8 result

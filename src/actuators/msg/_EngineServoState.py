@@ -7,7 +7,7 @@ import struct
 import std_msgs.msg
 
 class EngineServoState(genpy.Message):
-  _md5sum = "e205f0465d54096df246bf1eb71e4b18"
+  _md5sum = "27d6697fd0a649a16346e66010eef83f"
   _type = "actuators/EngineServoState"
   _has_header = True #flag to mark the presence of a Header object
   _full_text = """Header header
@@ -15,7 +15,9 @@ class EngineServoState(genpy.Message):
 # 
 float32 angle
 #  
-bool fix
+float32 current
+float32 voltage
+
 ================================================================================
 MSG: std_msgs/Header
 # Standard metadata for higher-level stamped data types.
@@ -35,8 +37,8 @@ time stamp
 string frame_id
 
 """
-  __slots__ = ['header','angle','fix']
-  _slot_types = ['std_msgs/Header','float32','bool']
+  __slots__ = ['header','angle','current','voltage']
+  _slot_types = ['std_msgs/Header','float32','float32','float32']
 
   def __init__(self, *args, **kwds):
     """
@@ -46,7 +48,7 @@ string frame_id
     changes.  You cannot mix in-order arguments and keyword arguments.
 
     The available fields are:
-       header,angle,fix
+       header,angle,current,voltage
 
     :param args: complete set of field values, in .msg order
     :param kwds: use keyword arguments corresponding to message field names
@@ -59,12 +61,15 @@ string frame_id
         self.header = std_msgs.msg.Header()
       if self.angle is None:
         self.angle = 0.
-      if self.fix is None:
-        self.fix = False
+      if self.current is None:
+        self.current = 0.
+      if self.voltage is None:
+        self.voltage = 0.
     else:
       self.header = std_msgs.msg.Header()
       self.angle = 0.
-      self.fix = False
+      self.current = 0.
+      self.voltage = 0.
 
   def _get_types(self):
     """
@@ -87,7 +92,7 @@ string frame_id
         length = len(_x)
       buff.write(struct.pack('<I%ss'%length, length, _x))
       _x = self
-      buff.write(_struct_fB.pack(_x.angle, _x.fix))
+      buff.write(_struct_3f.pack(_x.angle, _x.current, _x.voltage))
     except struct.error as se: self._check_types(se)
     except TypeError as te: self._check_types(te)
 
@@ -115,9 +120,8 @@ string frame_id
         self.header.frame_id = str[start:end]
       _x = self
       start = end
-      end += 5
-      (_x.angle, _x.fix,) = _struct_fB.unpack(str[start:end])
-      self.fix = bool(self.fix)
+      end += 12
+      (_x.angle, _x.current, _x.voltage,) = _struct_3f.unpack(str[start:end])
       return self
     except struct.error as e:
       raise genpy.DeserializationError(e) #most likely buffer underfill
@@ -139,7 +143,7 @@ string frame_id
         length = len(_x)
       buff.write(struct.pack('<I%ss'%length, length, _x))
       _x = self
-      buff.write(_struct_fB.pack(_x.angle, _x.fix))
+      buff.write(_struct_3f.pack(_x.angle, _x.current, _x.voltage))
     except struct.error as se: self._check_types(se)
     except TypeError as te: self._check_types(te)
 
@@ -168,13 +172,12 @@ string frame_id
         self.header.frame_id = str[start:end]
       _x = self
       start = end
-      end += 5
-      (_x.angle, _x.fix,) = _struct_fB.unpack(str[start:end])
-      self.fix = bool(self.fix)
+      end += 12
+      (_x.angle, _x.current, _x.voltage,) = _struct_3f.unpack(str[start:end])
       return self
     except struct.error as e:
       raise genpy.DeserializationError(e) #most likely buffer underfill
 
 _struct_I = genpy.struct_I
 _struct_3I = struct.Struct("<3I")
-_struct_fB = struct.Struct("<fB")
+_struct_3f = struct.Struct("<3f")
