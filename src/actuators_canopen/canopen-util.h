@@ -14,6 +14,8 @@
 #include <queue>
 #include <pthread.h>
 
+#include <semaphore.h>
+
 void print_hex(char *data, int size);
 
 UNS8 _getIndexSubindex(CO_Data *d, UNS8 nodeId, UNS16 *index, UNS8 *subindex);
@@ -54,7 +56,12 @@ struct Indigo_OD_Callback {
 	UNS8 subindex;
 
 	void (*callback_fn)(UNS8 *data, UNS32 size);
+
+	volatile int semaphore;
 };
+extern struct Indigo_OD_Callback callbacks[200];
+
+extern int callback_no;
 
 struct PDO_callback {
 	UNS16 index;

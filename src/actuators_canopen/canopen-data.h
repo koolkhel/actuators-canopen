@@ -133,6 +133,20 @@ union tail_electromotor_407 {
 	INTEGER64 data;
 };
 
+union helium_valve_20e_request {
+	struct {
+		UNS8 start_stop;
+	};
+	INTEGER64 data;
+};
+
+union helium_valve_182_response {
+	struct {
+		UNS8 start_stop_confirmation;
+	};
+	INTEGER64 data;
+};
+
 // посылаем 1 раз
 // посылаем 3 раз
 union left_main_engine_208_request {
@@ -651,6 +665,10 @@ struct data_400d_20 {
 	UNS16 right_ballonet_control;
 
 	UNS16 right_ballonet_linear_valve_resistance;
+};
+
+struct data_400e_20 {
+	UNS16 helium_valve_open;
 };
 
 #pragma pack(pop)

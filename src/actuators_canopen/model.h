@@ -28,6 +28,7 @@ enum PACKED engine_fix {
  * all domain level variables are grouped in one struct
  */
 struct actuators_model {
+#if 0
 	// struct data_4002_20
 	UNS16 failure_code;
 
@@ -127,7 +128,7 @@ struct actuators_model {
 
 	// 0.01 m/s
 	INTEGER16 air_speed_Z;
-
+#endif
 
 	//struct data_4005_21
 	// 0.1A
@@ -372,6 +373,9 @@ struct actuators_model {
 	UNS16 right_ballonet_control;
 
 	float right_ballonet_linear_valve_resistance;
+
+	// struct data_400e_20
+	UNS16 helium_valve_open;
 };
 
 extern pthread_mutex_t REPORTED_DATA_lock;

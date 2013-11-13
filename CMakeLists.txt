@@ -7,7 +7,7 @@ include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 #  Release        : w/o debug symbols, w/ optimization
 #  RelWithDebInfo : w/ debug symbols, w/ optimization
 #  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
-#set(ROS_BUILD_TYPE RelWithDebInfo)
+set(ROS_BUILD_TYPE Debug)
 
 rosbuild_init()
 
@@ -31,11 +31,15 @@ include_directories("/usr/local/include/canfestival")
 rosbuild_add_executable(actuators 
 	src/actuators_canopen/actuators.c
 	src/actuators_canopen/main-actuators.cpp
-	src/actuators_canopen/canopen-util.cpp)
-rosbuild_add_executable(emulator 
-	src/actuators_canopen/main-emulator.cpp
+	src/actuators_canopen/actuators-ros.cpp
 	src/actuators_canopen/canopen-util.cpp
-	src/actuators_canopen/emulator.c)
+	src/actuators_canopen/matlab-connector.cpp)
+#rosbuild_add_executable(emulator 
+#	src/actuators_canopen/main-emulator.cpp
+#	src/actuators_canopen/canopen-util.cpp
+#	src/actuators_canopen/emulator.c)
+
+set_target_properties(actuators PROPERTIES COMPILE_FLAGS "-W -Wall -falign-functions=8")
 target_link_libraries(actuators canlib rt canfestival canfestival_unix dl rt)
-target_link_libraries(emulator canlib rt canfestival canfestival_unix dl rt)
+#target_link_libraries(emulator canlib rt canfestival canfestival_unix dl rt)
 #target_link_libraries(emulator canlib rt)
