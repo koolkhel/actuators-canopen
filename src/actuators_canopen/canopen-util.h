@@ -57,7 +57,7 @@ struct Indigo_OD_Callback {
 
 	void (*callback_fn)(UNS8 *data, UNS32 size);
 
-	volatile int semaphore;
+	sem_t semaphore;
 };
 extern struct Indigo_OD_Callback callbacks[200];
 

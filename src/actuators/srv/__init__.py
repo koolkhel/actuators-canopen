@@ -1,4 +1,5 @@
 from ._SetGeneratorControl import *
+from ._SetRemoteControlAllow import *
 from ._SetPowerRelay import *
 from ._SetElectromotorsControl import *
 from ._SetBallonetControl import *

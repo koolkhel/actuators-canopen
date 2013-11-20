@@ -24,6 +24,28 @@ union generator_205 {
 };
 CTASSERT(sizeof(union generator_205) == 8);
 
+union remote_control_allow_201 {
+	enum {
+		REMOTE_CONTROL_ALLOWED = 0xAA,
+		REMOTE_CONTROL_DENIED  = 0x55
+	};
+	struct {
+		UNS8 remote_control_allow;
+	};
+	INTEGER64 data;
+};
+
+union remote_control_switch_204 {
+	enum {
+		REMOTE_CONTROL_ON  = 0xAA,
+		REMOTE_CONTROL_OFF = 0x55
+	};
+	struct {
+		UNS8 remote_control_switch;
+	};
+	INTEGER64 data;
+};
+
 union power_distribution_relay_305 {
 	enum {
 		AUTOMATIC = 0xAF,

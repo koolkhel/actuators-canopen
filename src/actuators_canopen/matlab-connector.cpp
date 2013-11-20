@@ -82,7 +82,7 @@ ssize_t readLine(int fd, char *buffer, size_t n)
     *buf = '\0';
     return totRead;
 }
-
+void notify_ros_topic(UNS16 index, UNS8 subindex);
 /**
  * Text protocol to communicate with matlab.
  * @param model model to be updated
@@ -95,24 +95,24 @@ int proto_parse_line(struct actuators_model *model, const char *line)
 
 	fprintf(stderr, "MATLAB got line %s", line);
 
-	if (result == 0) { result = sscanf(line, "left_electromotor_rate %hu", &model->left_electromotor_rate);}
-	if (result == 0) { result = sscanf(line, "right_electromotor_rate %hu", &model->right_electromotor_rate);}
-	if (result == 0) { result = sscanf(line, "left_electromotor_angle_Y %f", &model->left_electromotor_angle_Y);}
-	if (result == 0) { result = sscanf(line, "right_electromotor_angle_Y %f", &model->right_electromotor_angle_Y);}
-	if (result == 0) { result = sscanf(line, "left_electromotor_angle_X %f", &model->left_electromotor_angle_X);}
-	if (result == 0) { result = sscanf(line, "right_electromotor_angle_X %f", &model->right_electromotor_angle_X);}
-	if (result == 0) { result = sscanf(line, "left_main_engine_rate %hu", &model->left_main_engine_rate);}
-	if (result == 0) { result = sscanf(line, "left_main_engine_fuel_level %f", &model->left_main_engine_fuel_level);}
-	if (result == 0) { result = sscanf(line, "left_main_engine_aux_fuel_level %f", &model->left_main_engine_aux_fuel_level);}
-	if (result == 0) { result = sscanf(line, "left_main_engine_throttle_1_angle %f", &model->left_main_engine_throttle_1_angle);}
-	if (result == 0) { result = sscanf(line, "left_main_engine_throttle_2_angle %f", &model->left_main_engine_throttle_2_angle);}
-	if (result == 0) { result = sscanf(line, "right_main_engine_rate %hu", &model->right_main_engine_rate);}
-	if (result == 0) { result = sscanf(line, "right_main_engine_fuel_level %f", &model->right_main_engine_fuel_level);}
-	if (result == 0) { result = sscanf(line, "right_main_engine_aux_fuel_level %f", &model->right_main_engine_aux_fuel_level);}
-	if (result == 0) { result = sscanf(line, "right_main_engine_throttle_1_angle %f", &model->right_main_engine_throttle_1_angle);}
-	if (result == 0) { result = sscanf(line, "right_main_engine_throttle_2_angle %f", &model->right_main_engine_throttle_2_angle);}
-	if (result == 0) { result = sscanf(line, "left_main_engine_rotation_angle %f", &model->left_main_engine_rotation_angle);}
-	if (result == 0) { result = sscanf(line, "right_main_engine_rotation_angle %f", &model->right_main_engine_rotation_angle);}
+	if (result == 0) { result = sscanf(line, "left_electromotor_rate %hu", &model->left_electromotor_rate);notify_ros_topic(0x4007, 0x20);}
+	if (result == 0) { result = sscanf(line, "right_electromotor_rate %hu", &model->right_electromotor_rate);notify_ros_topic(0x4007, 0x20);}
+	if (result == 0) { result = sscanf(line, "left_electromotor_angle_Y %f", &model->left_electromotor_angle_Y);notify_ros_topic(0x4007, 0x20);}
+	if (result == 0) { result = sscanf(line, "right_electromotor_angle_Y %f", &model->right_electromotor_angle_Y);notify_ros_topic(0x4007, 0x20);}
+	if (result == 0) { result = sscanf(line, "left_electromotor_angle_X %f", &model->left_electromotor_angle_X);notify_ros_topic(0x4007, 0x20);}
+	if (result == 0) { result = sscanf(line, "right_electromotor_angle_X %f", &model->right_electromotor_angle_X);notify_ros_topic(0x4007, 0x20);}
+	if (result == 0) { result = sscanf(line, "left_main_engine_rate %hu", &model->left_main_engine_rate);notify_ros_topic(0x4008, 0x20);}
+	if (result == 0) { result = sscanf(line, "left_main_engine_fuel_level %f", &model->left_main_engine_fuel_level);notify_ros_topic(0x4008, 0x20);}
+	if (result == 0) { result = sscanf(line, "left_main_engine_aux_fuel_level %f", &model->left_main_engine_aux_fuel_level);notify_ros_topic(0x4008, 0x20);}
+	if (result == 0) { result = sscanf(line, "left_main_engine_throttle_1_angle %f", &model->left_main_engine_throttle_1_angle);notify_ros_topic(0x4008, 0x20);}
+	if (result == 0) { result = sscanf(line, "left_main_engine_throttle_2_angle %f", &model->left_main_engine_throttle_2_angle);notify_ros_topic(0x4008, 0x20);}
+	if (result == 0) { result = sscanf(line, "right_main_engine_rate %hu", &model->right_main_engine_rate);notify_ros_topic(0x4009, 0x20);}
+	if (result == 0) { result = sscanf(line, "right_main_engine_fuel_level %f", &model->right_main_engine_fuel_level);notify_ros_topic(0x4009, 0x20);}
+	if (result == 0) { result = sscanf(line, "right_main_engine_aux_fuel_level %f", &model->right_main_engine_aux_fuel_level);notify_ros_topic(0x4009, 0x20);}
+	if (result == 0) { result = sscanf(line, "right_main_engine_throttle_1_angle %f", &model->right_main_engine_throttle_1_angle);notify_ros_topic(0x4009, 0x20);}
+	if (result == 0) { result = sscanf(line, "right_main_engine_throttle_2_angle %f", &model->right_main_engine_throttle_2_angle);notify_ros_topic(0x4009, 0x20);}
+	if (result == 0) { result = sscanf(line, "left_main_engine_rotation_angle %f", &model->left_main_engine_rotation_angle);notify_ros_topic(0x400a, 0x20);}
+	if (result == 0) { result = sscanf(line, "right_main_engine_rotation_angle %f", &model->right_main_engine_rotation_angle);notify_ros_topic(0x400b, 0x20);}
 
 	return result;
 }

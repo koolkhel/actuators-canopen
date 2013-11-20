@@ -28,6 +28,9 @@ enum PACKED engine_fix {
  * all domain level variables are grouped in one struct
  */
 struct actuators_model {
+	UNS8 remote_control_allowed_state;
+
+	volatile UNS8 remote_control_enabled;
 #if 0
 	// struct data_4002_20
 	UNS16 failure_code;

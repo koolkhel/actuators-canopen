@@ -40,6 +40,9 @@
 #include "actuators/SetGeneratorControl.h"
 #include "actuators/SetPowerRelay.h"
 
+#include "actuators/SetRemoteControlAllow.h"
+#include "actuators/RemoteControlState.h"
+
 #include "actuators/BatteryBackupState.h"
 #include "actuators/BatteryFailsafeState.h"
 #include "actuators/PowerDistributionLineFailure.h"
@@ -52,6 +55,8 @@
 #include "model.h"
 #include "canopen-data.h"
 #include "canopen-util.h"
+
+#include "matlab-connector.h"
 
 static ros::ServiceServer start_left_engine_service;
 static ros::ServiceServer stop_left_engine_service;
@@ -76,6 +81,33 @@ static ros::ServiceServer set_right_ballonet_automatic_control_parameters_servic
 static ros::ServiceServer set_right_ballonet_control_service;
 
 static ros::ServiceServer switch_helium_valve_service;
+
+static ros::ServiceServer set_remote_control_allow_service;
+
+bool set_remote_control_allow(actuators::SetRemoteControlAllowRequest &req, actuators::SetRemoteControlAllowResponse &resp) {
+	UNS32 size = 0;
+	int result = 0;
+
+	ROS_ERROR("set_remote_control_allow %hhu", req.remote_control_allow);
+
+	union remote_control_allow_201 command;
+	command.data = 0;
+	switch (req.remote_control_allow) {
+	case 0:
+		command.remote_control_allow = 0x55;
+		MODEL.remote_control_allowed_state = 0;
+		break;
+	case 1:
+		command.remote_control_allow = 0xAA;
+		MODEL.remote_control_allowed_state = 1;
+		break;
+	}
+
+	size = sizeof(command.data);
+	result = writeLocalDict(&actuators_Data, 0x5019, 0x0, &command.data, &size, 0);
+
+	return true;
+}
 
 static void set_left_ballonet_upper_pressure(UNS32 left_ballonet_upper_pressure_threshold,
 		UNS32 left_ballonet_upper_pressure_delta) {
@@ -294,7 +326,7 @@ static void _set_electromotor_rate(int left_electromotor_rate, int right_electro
 	union tail_electromotor_307 command;
 	command.data = 0;
 
-	ROS_ERROR("_set_electromotor_rate %hd %hd\n", left_electromotor_rate, right_electromotor_rate);
+	ROS_ERROR("_set_electromotor_rate %hd %hd", left_electromotor_rate, right_electromotor_rate);
 	command.left_electomotor_rate = (uint16_t) left_electromotor_rate;
 	command.right_electromotor_rate = (uint16_t) right_electromotor_rate;
 
@@ -704,6 +736,22 @@ void reportMotorsControl(actuators::SetMotorsControlRequest &req) {
 	state.right_engine_servo_fix = req.right_engine_servo_fix;
 
 	motorControlPublisher.publish(state);
+
+	QUEUE_MATLAB_NOTIFY_VAR(req.left_electromotor_rate, "left_electromotor_rate %f");
+	QUEUE_MATLAB_NOTIFY_VAR(req.left_electromotors_servo_anglex, "left_electromotors_servo_anglex %f");
+	QUEUE_MATLAB_NOTIFY_VAR(req.left_electromotors_servo_angley, "left_electromotors_servo_angley %f");
+
+	QUEUE_MATLAB_NOTIFY_VAR(req.right_electromotor_rate, "right_electromotor_rate %f");
+	QUEUE_MATLAB_NOTIFY_VAR(req.right_electromotors_servo_anglex, "right_electromotors_servo_anglex %f");
+	QUEUE_MATLAB_NOTIFY_VAR(req.right_electromotors_servo_angley, "right_electromotors_servo_angley %f");
+
+	QUEUE_MATLAB_NOTIFY_VAR(req.left_engine_control_regime, "left_engine_control_regime %hhd");
+	QUEUE_MATLAB_NOTIFY_VAR(req.left_engine_control, "left_engine_control %f");
+	QUEUE_MATLAB_NOTIFY_VAR(req.left_engine_servo_angle, "left_engine_servo_angle %f");
+
+	QUEUE_MATLAB_NOTIFY_VAR(req.right_engine_control_regime, "right_engine_control_regime %hhd");
+	QUEUE_MATLAB_NOTIFY_VAR(req.right_engine_control, "right_engine_control %f");
+	QUEUE_MATLAB_NOTIFY_VAR(req.right_engine_servo_angle, "right_engine_servo_angle %f");
 }
 
 static bool set_motors_control(actuators::SetMotorsControlRequest &req,
@@ -726,6 +774,7 @@ static bool set_motors_control(actuators::SetMotorsControlRequest &req,
 		enqueue_PDO(0x2);
 
 		gettimeofday(&electromotor_rate_tv, NULL);
+	} else {
 		ROS_ERROR("too fast electromotor_rate, skipping");
 	}
 
@@ -788,6 +837,8 @@ static ros::Publisher electromotorsStateExtPublisher;
 static ros::Publisher powerSystemStatePublisher;
 
 static ros::Publisher heliumValveStatePublisher;
+
+static ros::Publisher remoteControlStatePublisher;
 
 actuators::EngineState getLeftMainEngineState(struct actuators_model *model) {
 	actuators::EngineState engineState;
@@ -1205,7 +1256,16 @@ actuators::ElectromotorsStateExt getElectromotorsStateExt(struct actuators_model
 	return state;
 }
 
+actuators::RemoteControlState getRemoteControlState(struct actuators_model *model) {
+	actuators::RemoteControlState state;
 
+	state.header.stamp = ros::Time::now();
+
+	state.remote_control_allowed = model->remote_control_allowed_state;
+	state.remote_control_enabled = model->remote_control_enabled;
+
+	return state;
+}
 
 void report_topics(void) {
 	struct actuators_model *model;
@@ -1213,9 +1273,10 @@ void report_topics(void) {
 
 	model = &MODEL;
 
-	for (i = 0; i < callback_no; i++) {
-		if (callbacks[i].semaphore) {
+	remoteControlStatePublisher.publish(getRemoteControlState(model));
 
+	for (i = 0; i < callback_no; i++) {
+		if (!sem_trywait(&callbacks[i].semaphore)) {
 			switch (callbacks[i].index) {
 			case 0x4000:
 				break;
@@ -1257,8 +1318,6 @@ void report_topics(void) {
 				heliumValveStatePublisher.publish(getHeliumValveState(model));
 				break;
 			}
-
-			callbacks[i].semaphore = 0;
 		}
 	}
 }
@@ -1295,6 +1354,8 @@ void *ros_main(void *data) {
 
 	motorControlPublisher = nh.advertise<actuators::MotorsControl>("/motors_control", 10);
 
+	remoteControlStatePublisher = nh.advertise<actuators::RemoteControlState>("/remote_control_state", 10);
+
 	powerSystemStatePublisher = nh.advertise<actuators::PowerSystemState>("/power_system_state", 10);
 
 	set_generator_control_service = nh.advertiseService("/actuators/set_generator_control", set_generator_control);
@@ -1321,11 +1382,15 @@ void *ros_main(void *data) {
 
 	switch_helium_valve_service = nh.advertiseService("/actuators/switch_helium_valve", switch_helium_valve);
 
+	set_remote_control_allow_service = nh.advertiseService("/actuators/set_remote_control_allow", set_remote_control_allow);
+
 	while (ros::ok() && !exit_flag) {
 		report_topics();
 		ros::spinOnce();
 		ros::Duration(0.001).sleep();
 	}
+
+	ros::shutdown();
 
 	return NULL;
 }

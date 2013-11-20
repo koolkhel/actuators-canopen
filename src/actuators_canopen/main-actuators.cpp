@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include <signal.h>
 
@@ -15,6 +16,8 @@
 #include "./actuators-ros.h"
 
 #include "./matlab-connector.h"
+
+// #include <ros/ros.h>
 
 #include <assert.h>
 
@@ -202,12 +205,49 @@ PDO_CALLBACK(0x5102, 0x182, helium_valve_response) {
         return OD_SUCCESSFUL;
 }
 
+PDO_CALLBACK(0x5103, 0x204, remote_control_switch) {
+	DECLARE_PDO_CALLBACK_VARS;
+
+	readLocalDict(d, 0x5103, 0x0, data, &size, &dataType, 0);
+
+    switch (Subindex) {
+    case 0x0:
+    	printf("PARSED Remote control switch callback result 0x204: ");
+    	print_hex((char *) data, size);
+    	printf("\n");
+
+    	// confirmation
+    	if (data[0] == 0xAA) {
+    		// switch to remote control
+    		if (MODEL.remote_control_allowed_state && !MODEL.remote_control_enabled) {
+    			fprintf(stderr, "remote control enabled!\n");
+    			MODEL.remote_control_enabled = 1;
+    		} else if (!MODEL.remote_control_allowed_state) {
+        		fprintf(stderr, "remote control requested, but not allowed!\n");
+    		}
+    	} else if (data[0] == 0x55) {
+    		// switch back
+    		if (MODEL.remote_control_enabled) {
+    			fprintf(stderr, "remote control disabled!\n");
+    			MODEL.remote_control_enabled = 0;
+    		}
+    	}
+    	break;
+    default:
+    	printf("unknown PDO subindex %.02hhX\n", Subindex);
+    	break;
+    }
+
+
+	return OD_SUCCESSFUL;
+}
+
 void notify_ros_topic(UNS16 index, UNS8 subindex) {
 	int i = 0;
 
 	for (i = 0; i < callback_no; i++) {
 		if (callbacks[i].index == index && callbacks[i].subindex == subindex) {
-			callbacks[i].semaphore = 1;
+			sem_post(&callbacks[i].semaphore);
 			break;
 		}
 	}
@@ -753,6 +793,7 @@ void *sdo_polling_thread(void *arg) {
 			} else {
 				printf("SDO Result ABORT node 0x%hhx index 0x%hx subindex 0x%hhx code: %u\n", nodeid, index, subindex, abort_code);
 			}
+			closeSDOtransfer(&actuators_Data, nodeid, SDO_CLIENT);
 		}
 		usleep(100);
 	}
@@ -798,6 +839,11 @@ void BUS_CAN_HEARTBEAT_ERROR(CO_Data *data, UNS8 nodeId) {
 	}
 }
 
+void post_sync(CO_Data *data) {
+//	enqueue_PDO(0x19); // send control mode
+	sendOnePDOevent(&actuators_Data, 0x19);
+}
+
 void CANopen_startup(void) {
 	Board.busname = busname;
 	Board.baudrate = baudrate;
@@ -817,10 +863,10 @@ void CANopen_startup(void) {
 	setState(&actuators_Data, Pre_operational);
 
 	my_sleep(1);
-    setNodeId(&actuators_Data, 0x1);
 
 	setState(&actuators_Data, Operational);
 
+	actuators_Data.post_sync = post_sync;
 	//actuators_Data.heartbeatError = BUS_CAN_HEARTBEAT_ERROR;
 	//heartbeatInit(&actuators_Data);
 }
@@ -857,10 +903,14 @@ void enqueue_PDO(int PDO) {
 	localtime_r(&my_time, &my_time_s);
 	asctime_r(&my_time_s, buf);
 
-	SEND_QUEUE_LOCK();
-	printf("%s QUEUEING PDO 0x%.02x...\n", buf, PDO);
-	send_queue_COB.push(PDO);
-	SEND_QUEUE_UNLOCK();
+	if (!MODEL.remote_control_enabled || (PDO == 0x19)) {
+		SEND_QUEUE_LOCK();
+		printf("%s QUEUEING PDO 0x%.02x...\n", buf, PDO);
+		send_queue_COB.push(PDO);
+		SEND_QUEUE_UNLOCK();
+	} else {
+		printf("%s NOT QUEUEING PDO 0x%.02x DUE TO REMOTE CONTROL\n", buf, PDO);
+	}
 }
 
 int _retreive_PDO_queue_entry() {
@@ -947,7 +997,7 @@ int main(int argc, char **argv) {
 	for (int i = 0; i < callback_no; i++) {
 		printf("%d SDO callback index 0x%hx subindex 0x%hhx address %p\n", i, callbacks[i].index, callbacks[i].subindex, callbacks[i].callback_fn);
 
-		callbacks[i].semaphore = 0;
+		sem_init(&callbacks[i].semaphore, 0, 0);
 	}
 
 	printf("%d PDO callbacks\n", pdo_callback_no);

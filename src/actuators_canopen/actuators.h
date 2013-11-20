@@ -37,8 +37,10 @@ extern INTEGER64 RIGHT_MOTOR_313;		/* Mapped at index 0x5015, subindex 0x00*/
 extern INTEGER64 POWER_DISTRIBUTION_RELAY_305;		/* Mapped at index 0x5016, subindex 0x00*/
 extern INTEGER64 GENERATOR_205;		/* Mapped at index 0x5017, subindex 0x00*/
 extern INTEGER64 HELIUM_VALVE_20e;		/* Mapped at index 0x5018, subindex 0x00*/
+extern INTEGER64 REMOTE_CONTROL_ALLOW_201;		/* Mapped at index 0x5019, subindex 0x00*/
 extern INTEGER8 LEFT_MOTOR_CALLBACK_188;		/* Mapped at index 0x5100, subindex 0x00*/
 extern INTEGER8 RIGHT_MOTOR_CALLBACK_189;		/* Mapped at index 0x5101, subindex 0x00*/
 extern INTEGER8 HELIUM_VALVE_CALLBACK_182;		/* Mapped at index 0x5102, subindex 0x00*/
+extern INTEGER8 REMOTE_CONTROL_SWITCH_204;		/* Mapped at index 0x5103, subindex 0x00*/
 
 #endif // ACTUATORS_H

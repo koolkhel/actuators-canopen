@@ -44,9 +44,9 @@ void CheckReadSDO(CO_Data* d, UNS8 nodeid) {
 	closeSDOtransfer(d, nodeid, SDO_CLIENT);
 }
 
-int callback_no = 0;
+int pdo_callback_no = 0;
 
-struct PDO_callback callbacks[512];
+struct PDO_callback pdo_callbacks[512];
 
 PDO_CALLBACK(0x5000, 0x209, wtf) {
 	DECLARE_PDO_CALLBACK_VARS;
@@ -76,8 +76,8 @@ int main(int argc, char **argv) {
 
 	setNodeId(&emulator_Data, 0x7);
 
-	for (i = 0; i < callback_no; i++) {
-		RegisterSetODentryCallBack(&emulator_Data, callbacks[i].index, 0, callbacks[i].callback_fn);
+	for (i = 0; i < pdo_callback_no; i++) {
+		RegisterSetODentryCallBack(&emulator_Data, pdo_callbacks[i].index, 0, pdo_callbacks[i].callback_fn);
 	}
 
 	/* Init stack timer */
