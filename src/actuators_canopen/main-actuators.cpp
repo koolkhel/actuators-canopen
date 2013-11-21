@@ -690,6 +690,10 @@ int CallSDOCallback(UNS16 index, UNS8 subindex, UNS8 *data, UNS32 size) {
 
 #define INDIGO_SDO_BLOCK 1
 #define INDIGO_SDO_EXPEDITED 2
+
+#define MATLAB_ENABLED 1
+#define MATLAB_DISABLED 0
+
 /* regularily poll these remote OD entries */
 struct pollable_OD_entry {
     UNS8 nodeId;
@@ -703,9 +707,9 @@ struct pollable_OD_entry {
     UNS32 size;
 
 
-    // 1 == in progress, in order to abort
-    // 0 == reset
-    int status;
+    // 1 == matlab is enabled, real SDO is disabled
+    // 0 == real SDO is enabled
+    volatile int status;
 };
 
 struct pollable_OD_entry pollable_entries[] = {
@@ -724,6 +728,27 @@ struct pollable_OD_entry pollable_entries[] = {
     {0x0d, 0x400d, 0x20, octet_string, INDIGO_SDO_BLOCK, {0}, 1024, 0}, // ballonet right
     {0x0e, 0x400e, 0x20, octet_string, INDIGO_SDO_BLOCK, {0}, 1024, 0}, // helium valve
 };
+
+int pollable_entries_count = sizeof(pollable_entries) / sizeof(pollable_entries[0]);
+
+void reset_matlab_feedback() {
+	fprintf(stderr, "matlab disconnected, using real CAN data\n");
+	for (int i = 0; i < pollable_entries_count; i++) {
+		pollable_entries[i].status = MATLAB_DISABLED;
+	}
+}
+
+void enable_matlab_feedback(UNS8 nodeid) {
+	for (int i = 0; i < pollable_entries_count; i++) {
+		if (pollable_entries[i].nodeId == nodeid) {
+			if (pollable_entries[i].status == MATLAB_DISABLED) {
+				pollable_entries[i].status = MATLAB_ENABLED;
+				fprintf(stderr, "enabling matlab model for node 0x%hhx index 0x%hx subindex 0x%hhx\n",
+					pollable_entries[i].nodeId, pollable_entries[i].index, pollable_entries[i].subindex);
+			}
+		}
+	}
+}
 
 struct pollable_node {
 	UNS8 nodeid;
@@ -755,6 +780,9 @@ void *sdo_polling_thread(void *arg) {
 			struct pollable_OD_entry *entry = &pollable_entries[i];
 
 			if (entry->nodeId != nodeid)
+				continue;
+
+			if (entry->status == MATLAB_ENABLED)
 				continue;
 
 			UNS16 index = entry->index;

@@ -1392,6 +1392,8 @@ void *ros_main(void *data) {
 
 	ros::shutdown();
 
+	ROS_ERROR("ROS thread exiting");
+
 	return NULL;
 }
 

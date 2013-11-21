@@ -4,10 +4,10 @@ from ._HeliumValveState import *
 from ._RemoteControlState import *
 from ._EngineState import *
 from ._EngineServoState import *
-from ._MotorsControl import *
+from ._BallonetRegime import *
 from ._BallonetStateExt import *
 from ._ElectromotorServoState import *
-from ._BallonetRegime import *
+from ._MotorsControl import *
 from ._PowerSystemState import *
 from ._BatteryFailsafeState import *
 from ._ElectromotorState import *
@@ -15,6 +15,5 @@ from ._BallonetState import *
 from ._PowerDistributionLineFailure import *
 from ._EngineServoStateExt import *
 from ._ElectromotorsStateExt import *
-from ._RemoteControlAllowState import *
 from ._BatteryBackupState import *
 from ._ElectromotorsState import *
