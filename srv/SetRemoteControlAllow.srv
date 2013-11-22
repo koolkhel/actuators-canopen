@@ -1,0 +1,6 @@
+uint8 REMOTE_CONTROL_ALLOWED=1
+uint8 REMOTE_CONTROL_DENIED=0 
+
+uint8 remote_control_allow
+---
+uint8 result
