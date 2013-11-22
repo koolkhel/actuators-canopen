@@ -9,10 +9,11 @@ from ._BallonetStateExt import *
 from ._ElectromotorServoState import *
 from ._MotorsControl import *
 from ._PowerSystemState import *
+from ._PowerDistributionLineFailure import *
 from ._BatteryFailsafeState import *
 from ._ElectromotorState import *
 from ._BallonetState import *
-from ._PowerDistributionLineFailure import *
+from ._ControlSurfaceState import *
 from ._EngineServoStateExt import *
 from ._ElectromotorsStateExt import *
 from ._BatteryBackupState import *

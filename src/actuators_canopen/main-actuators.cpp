@@ -430,6 +430,34 @@ CALLBACK(0x4005, 0x21) {
 	notify_ros_topic(0x4005, 0x21);
 }
 
+CALLBACK(0x4006, 0x20) {
+	DECLARE_M(4006, 20);
+
+	RECEIVE_PRINT(M->left_control_surface_X, left_control_surface_X, 100.0, "%f degree");
+	RECEIVE_PRINT(M->left_control_surface_Y, left_control_surface_Y, 100.0, "%f degree");
+
+	RECEIVE_PRINT(M->right_control_surface_X, right_control_surface_X, 100.0, "%f degree");
+	RECEIVE_PRINT(M->right_control_surface_Y, right_control_surface_Y, 100.0, "%f degree");
+
+	notify_ros_topic(0x4006, 0x20);
+}
+
+CALLBACK(0x4006, 0x21) {
+	DECLARE_M(4006, 21);
+
+	RECEIVE_PRINT(M->control_surface_1_current, control_surface_1_current, 10.0, "%f A");
+	RECEIVE_PRINT(M->control_surface_2_current, control_surface_2_current, 10.0, "%f A");
+	RECEIVE_PRINT(M->control_surface_3_current, control_surface_3_current, 10.0, "%f A");
+	RECEIVE_PRINT(M->control_surface_4_current, control_surface_4_current, 10.0, "%f A");
+
+	RECEIVE_PRINT(M->control_surface_5_current, control_surface_5_current, 10.0, "%f A");
+	RECEIVE_PRINT(M->control_surface_6_current, control_surface_6_current, 10.0, "%f A");
+	RECEIVE_PRINT(M->control_surface_7_current, control_surface_7_current, 10.0, "%f A");
+	RECEIVE_PRINT(M->control_surface_8_current, control_surface_8_current, 10.0, "%f A");
+
+	notify_ros_topic(0x4006, 0x21);
+}
+
 // TAIL_ENGINE
 CALLBACK(0x4007, 0x10) {
 	notify_ros_topic(0x4007, 0x10);
@@ -727,6 +755,9 @@ struct pollable_OD_entry pollable_entries[] = {
 	{0x0c, 0x400c, 0x20, octet_string, INDIGO_SDO_BLOCK, {0}, 1024, 0}, // ballonet left
     {0x0d, 0x400d, 0x20, octet_string, INDIGO_SDO_BLOCK, {0}, 1024, 0}, // ballonet right
     {0x0e, 0x400e, 0x20, octet_string, INDIGO_SDO_BLOCK, {0}, 1024, 0}, // helium valve
+
+    {0x06, 0x4006, 0x20, octet_string, INDIGO_SDO_BLOCK, {0}, 1024, 0}, // control surface
+    {0x06, 0x4006, 0x21, octet_string, INDIGO_SDO_BLOCK, {0}, 1024, 0},
 };
 
 int pollable_entries_count = sizeof(pollable_entries) / sizeof(pollable_entries[0]);
@@ -764,7 +795,8 @@ struct pollable_node {
 		{0x0b, 0}, // right main engine rotation
 		{0x0c, 0}, // left ballonet
 		{0x0d, 0}, // right ballonet
-		{0x0e, 0}  // helium valve
+		{0x0e, 0}, // helium valve
+		{0x06, 0}, // control surface
 };
 
 void *sdo_polling_thread(void *arg) {

@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/time.h>
 #include <netinet/in.h>
 #include <pthread.h>
 #include <unistd.h>
@@ -148,11 +149,16 @@ void server_loop(int client_socket) {
 	struct timeval tv;
 	fd_set read_fd_set;
 	int result = 0;
-	char buf[255];
+#define MATLAB_BUF_SIZE 1024
+	char buf[MATLAB_BUF_SIZE];
+	char log_buf[MATLAB_BUF_SIZE];
 
 	int max_fd = (client_socket > pipe_read_fd) ? client_socket : pipe_read_fd;
 
 	matlab_connected = 1;
+
+	static struct timeval matlab_timeout_tv = {0, 0};
+	gettimeofday(&matlab_timeout_tv, NULL);
 
 	while (true) {
 		/* FIXME write part */
@@ -162,22 +168,36 @@ void server_loop(int client_socket) {
 		// internal pipe for outgoing updates for matlab
 		FD_SET(pipe_read_fd, &read_fd_set);
 
-		tv.tv_sec = 1;
+		tv.tv_sec = 3;
 		tv.tv_usec = 0;
+
+		struct timeval now_tv;
+		long long diff = 0;
+
+		gettimeofday(&now_tv, NULL);
+
+		diff = now_tv.tv_sec * 1000 * 1000L + now_tv.tv_usec - (matlab_timeout_tv.tv_sec * 1000 * 1000L + matlab_timeout_tv.tv_usec);
+
+		// more than 3 seconds
+
+		if (diff > 3 * 1000 * 1000L) // matlab timeout
+			break;
+
 
 		result = select(max_fd + 1, &read_fd_set, NULL, NULL, &tv);
 		if (result > 0) {
 			if (FD_ISSET(client_socket, &read_fd_set)) {
-				result = readLine(client_socket, buf, 255);
+				result = readLine(client_socket, buf, MATLAB_BUF_SIZE);
 				if (result <= 0) {
-					perror("EOF on client socket");
+					strerror_r(errno, log_buf, MATLAB_BUF_SIZE);
+					fprintf(stderr, "matlab client READ error: %s\n", log_buf);
 					break;
 				}
 
-				LOCK_MODEL();
 				// parse incoming line from matlab
 				proto_parse_line(&MODEL, buf);
-				UNLOCK_MODEL();
+
+				gettimeofday(&matlab_timeout_tv, NULL);
 			}
 
 			if (FD_ISSET(pipe_read_fd, &read_fd_set)) {
@@ -187,15 +207,19 @@ void server_loop(int client_socket) {
 
 				result = read(pipe_read_fd, &buf[0], 1);
 				if (result <= 0) {
-					perror("pipe read");
+					strerror_r(errno, log_buf, MATLAB_BUF_SIZE);
+					fprintf(stderr, "matlab client PIPE error: %s\n", log_buf);
 					break;
 				}
 
 				send_buf = matlab_send_queue.front().c_str();
 
+				fprintf(stderr, "sending back to MATLAB %s", send_buf);
+
 				result = write(client_socket, send_buf, strlen(send_buf));
 				if (result <= 0) {
-					perror("client socket write");
+					strerror_r(errno, log_buf, MATLAB_BUF_SIZE);
+					fprintf(stderr, "matlab client WRITE error: %s, exiting\n", log_buf);
 					break;
 				}
 
@@ -204,9 +228,11 @@ void server_loop(int client_socket) {
 			}
 
 		} else if (result == 0) { /* select timeout */
-
+			break; // exit as per Roman request
 		} else {
-			perror("matlab select");
+			strerror_r(errno, log_buf, MATLAB_BUF_SIZE);
+			fprintf(stderr, "matlab client SELECT error: %s, exiting\n", log_buf);
+			break;
 		}
 	}
 
@@ -236,6 +262,8 @@ void *matlab_main(void *data) {
 	}
 
 	setsockopt(matlab_listen_socket, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
+	optval = 1;
+	setsockopt(matlab_listen_socket, SOL_SOCKET, SO_KEEPALIVE, &optval, sizeof(optval));
 
 	memset(&my_addr, 0, sizeof(my_addr));
 
@@ -259,7 +287,7 @@ void *matlab_main(void *data) {
 		struct sockaddr_in client_addr;
 		unsigned int client_addr_len;
 		memset(&client_addr, 0, sizeof(client_addr));
-		int client_socket = 0;
+		int client_socket = -1;
 
 		client_socket = accept(matlab_listen_socket, (sockaddr *) &client_addr, &client_addr_len);
 		if (client_socket == -1) {
@@ -267,12 +295,16 @@ void *matlab_main(void *data) {
 			continue;
 		}
 
+		fprintf(stderr, "MATLAB client connect\n");
+
 		/* presumably never exits */
 		server_loop(client_socket);
 
 		result = shutdown(client_socket, SHUT_RDWR);
 
 		close(client_socket);
+
+		fprintf(stderr, "MATLAB client disconnect\n");
 	}
 
 	return NULL;

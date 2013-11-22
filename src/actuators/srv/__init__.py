@@ -9,6 +9,7 @@ from ._SetMotorsControl import *
 from ._SetElectromotorsOnOff import *
 from ._SetBallonetRegime import *
 from ._StopEngine import *
+from ._SetControlSurface import *
 from ._SetBallonetAutomaticControlParameters import *
 from ._StartEngine import *
 from ._SwitchHeliumValve import *

@@ -215,6 +215,43 @@ struct actuators_model {
 	// примечание 4
 	struct power_distribution_line_failure distribution_lines_failure_state;
 
+	// struct data_4006_20
+	// 0.01 degree
+	float left_control_surface_X;
+
+	// 0.01 degree
+	float left_control_surface_Y;
+
+	// 0.01 degree
+	float right_control_surface_X;
+
+	// 0.01 degree
+	float right_control_surface_Y;
+
+	// struct data_4006_21
+	// 0.1 A
+	float control_surface_1_current;
+
+	// 0.1 A
+	float control_surface_2_current;
+
+	// 0.1 A
+	float control_surface_3_current;
+
+	// 0.1 A
+	float control_surface_4_current;
+
+	// 0.1 A
+	float control_surface_5_current;
+
+	// 0.1 A
+	float control_surface_6_current;
+
+	// 0.1 A
+	float control_surface_7_current;
+
+	// 0.1 A
+	float control_surface_8_current;
 
 	// struct data_4007_20
 	// * 1

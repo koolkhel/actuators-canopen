@@ -15,6 +15,16 @@
 // ensure everything is 1 byte aligned
 #pragma pack(push,1)
 
+union control_surface_206 {
+	struct {
+		// * 100
+		INTEGER16 angle_X;
+		// * 100
+		INTEGER16 angle_Y;
+	};
+	INTEGER64 data;
+};
+
 union generator_205 {
 	struct {
 		UNS8 left_generator_start;
@@ -517,6 +527,52 @@ CTASSERT(sizeof(struct power_distribution_relay_state) == 2);
 CTASSERT(sizeof(struct power_distribution_line_failure) == 2);
 CTASSERT(sizeof(struct failsafe_battery_state) == 2);
 CTASSERT(sizeof(struct data_4005_21) == 2 * 27);
+
+struct data_4006_20 {
+	// 0.01 C
+	INTEGER16 left_control_surface_X;
+
+	// 0.01 C
+	INTEGER16 left_control_surface_Y;
+
+	// 0.01 C
+	INTEGER16 right_control_surface_X;
+
+	// 0.01 C
+	INTEGER16 right_control_surface_Y;
+
+	UNS32 reserved;
+};
+CTASSERT(sizeof(struct data_4006_20) == 12);
+
+struct data_4006_21 {
+	// 0.1 A
+	UNS16 control_surface_1_current;
+
+	// 0.1 A
+	UNS16 control_surface_2_current;
+
+	// 0.1 A
+	UNS16 control_surface_3_current;
+
+	// 0.1 A
+	UNS16 control_surface_4_current;
+
+	// 0.1 A
+	UNS16 control_surface_5_current;
+
+	// 0.1 A
+	UNS16 control_surface_6_current;
+
+	// 0.1 A
+	UNS16 control_surface_7_current;
+
+	// 0.1 A
+	UNS16 control_surface_8_current;
+
+	UNS32 reserved;
+};
+CTASSERT(sizeof(struct data_4006_21) == 20);
 
 struct data_4007_20 {
 	// * 1

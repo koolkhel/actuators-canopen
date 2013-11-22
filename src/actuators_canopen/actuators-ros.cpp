@@ -40,6 +40,9 @@
 #include "actuators/SetGeneratorControl.h"
 #include "actuators/SetPowerRelay.h"
 
+#include "actuators/SetControlSurface.h"
+#include "actuators/ControlSurfaceState.h"
+
 #include "actuators/SetRemoteControlAllow.h"
 #include "actuators/RemoteControlState.h"
 
@@ -83,6 +86,8 @@ static ros::ServiceServer set_right_ballonet_control_service;
 static ros::ServiceServer switch_helium_valve_service;
 
 static ros::ServiceServer set_remote_control_allow_service;
+
+static ros::ServiceServer set_control_surface_service;
 
 bool set_remote_control_allow(actuators::SetRemoteControlAllowRequest &req, actuators::SetRemoteControlAllowResponse &resp) {
 	UNS32 size = 0;
@@ -803,6 +808,25 @@ static bool set_motors_control(actuators::SetMotorsControlRequest &req,
 	return true;
 }
 
+bool set_control_surface(actuators::SetControlSurfaceRequest &request, actuators::SetControlSurfaceResponse &resp) {
+	UNS32 size = 0;
+	int result = 0;
+
+	union control_surface_206 command;
+
+	ROS_ERROR("set_control_surface angle_X %f angle_Y %f", request.angle_X, request.angle_Y);
+
+	command.angle_X = (INTEGER16) request.angle_X * 100;
+	command.angle_Y = (INTEGER16) request.angle_Y * 100;
+
+	size = sizeof(command.data);
+	result = writeLocalDict(&actuators_Data, 0x501A, 0x0, &command.data, &size, 0);
+
+	enqueue_PDO(0x1A);
+
+	return true;
+}
+
 /**************************************************************************
  *
  *       T           O           P          I          C           S
@@ -839,6 +863,8 @@ static ros::Publisher powerSystemStatePublisher;
 static ros::Publisher heliumValveStatePublisher;
 
 static ros::Publisher remoteControlStatePublisher;
+
+static ros::Publisher controlSurfaceStatePublisher;
 
 actuators::EngineState getLeftMainEngineState(struct actuators_model *model) {
 	actuators::EngineState engineState;
@@ -1267,6 +1293,30 @@ actuators::RemoteControlState getRemoteControlState(struct actuators_model *mode
 	return state;
 }
 
+actuators::ControlSurfaceState getControlSurfaceState(struct actuators_model *model) {
+	actuators::ControlSurfaceState state;
+
+	state.header.stamp = ros::Time::now();
+
+	state.control_surface_1_current = model->control_surface_1_current;
+	state.control_surface_2_current = model->control_surface_2_current;
+	state.control_surface_3_current = model->control_surface_3_current;
+	state.control_surface_4_current = model->control_surface_4_current;
+
+	state.control_surface_5_current = model->control_surface_5_current;
+	state.control_surface_6_current = model->control_surface_6_current;
+	state.control_surface_7_current = model->control_surface_7_current;
+	state.control_surface_8_current = model->control_surface_8_current;
+
+	state.left_control_surface_X = model->left_control_surface_X;
+	state.left_control_surface_Y = model->left_control_surface_Y;
+
+	state.right_control_surface_X = model->right_control_surface_X;
+	state.right_control_surface_Y = model->right_control_surface_Y;
+
+	return state;
+}
+
 void report_topics(void) {
 	struct actuators_model *model;
 	int i = 0;
@@ -1292,6 +1342,7 @@ void report_topics(void) {
 				powerSystemStatePublisher.publish(getPowerSystemState(model));
 				break;
 			case 0x4006:
+				controlSurfaceStatePublisher.publish(getControlSurfaceState(model));
 				break;
 			case 0x4007:
 				electromotorsStateExtPublisher.publish(getElectromotorsStateExt(model));
@@ -1358,6 +1409,8 @@ void *ros_main(void *data) {
 
 	powerSystemStatePublisher = nh.advertise<actuators::PowerSystemState>("/power_system_state", 10);
 
+	controlSurfaceStatePublisher = nh.advertise<actuators::ControlSurfaceState>("/control_surface_state", 10);
+
 	set_generator_control_service = nh.advertiseService("/actuators/set_generator_control", set_generator_control);
 	set_power_relay_service = nh.advertiseService("/actuators/set_power_relay", set_power_relay);
 
@@ -1383,6 +1436,8 @@ void *ros_main(void *data) {
 	switch_helium_valve_service = nh.advertiseService("/actuators/switch_helium_valve", switch_helium_valve);
 
 	set_remote_control_allow_service = nh.advertiseService("/actuators/set_remote_control_allow", set_remote_control_allow);
+
+	set_control_surface_service = nh.advertiseService("/actuators/set_control_surface", set_control_surface);
 
 	while (ros::ok() && !exit_flag) {
 		report_topics();

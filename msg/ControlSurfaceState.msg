@@ -1,0 +1,16 @@
+Header header
+
+float32 left_control_surface_X
+float32 left_control_surface_Y
+float32 right_control_surface_X
+float32 right_control_surface_Y
+
+float32 control_surface_1_current
+float32 control_surface_2_current
+float32 control_surface_3_current
+float32 control_surface_4_current
+float32 control_surface_5_current
+float32 control_surface_6_current
+float32 control_surface_7_current
+float32 control_surface_8_current
+
