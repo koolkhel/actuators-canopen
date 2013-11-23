@@ -854,6 +854,7 @@ void *sdo_polling_thread(void *arg) {
 				CallSDOCallback(index, subindex, &entry->data[0], entry->size);
 			} else {
 				printf("SDO Result ABORT node 0x%hhx index 0x%hx subindex 0x%hhx code: %u\n", nodeid, index, subindex, abort_code);
+				usleep(100 * 1000); // wait a little more for lower levels to handle this
 			}
 			closeSDOtransfer(&actuators_Data, nodeid, SDO_CLIENT);
 		}

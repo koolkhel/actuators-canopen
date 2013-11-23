@@ -768,13 +768,14 @@ static bool set_motors_control(actuators::SetMotorsControlRequest &req,
 	static struct timeval electromotor_angle_tv = {0, 0};
 
 	struct timeval now_tv;
-	long long diff = 0;
+	double diff = 0.0;
 
 	gettimeofday(&now_tv, NULL);
 
-	diff = now_tv.tv_sec * 1000 * 1000L + now_tv.tv_usec - (electromotor_rate_tv.tv_sec * 1000 * 1000L + electromotor_rate_tv.tv_usec);
+	diff = now_tv.tv_sec - electromotor_rate_tv.tv_sec;
+	diff += now_tv.tv_usec / (1000.0 * 1000.0) - electromotor_rate_tv.tv_usec / (1000.0 * 1000.0);
 
-	if (diff > 1500 * 1000) {
+	if (diff > 1.5) {
 		_set_electromotor_rate(req.left_electromotor_rate, req.right_electromotor_rate);
 		enqueue_PDO(0x2);
 
