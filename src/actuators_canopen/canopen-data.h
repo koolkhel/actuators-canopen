@@ -727,6 +727,8 @@ struct data_400c_20 {
 	UNS16 left_ballonet_control;
 
 	UNS16 left_ballonet_linear_valve_resistance;
+
+	UNS16 left_ballonet_regime;
 };
 
 struct data_400d_20 {
@@ -743,6 +745,8 @@ struct data_400d_20 {
 	UNS16 right_ballonet_control;
 
 	UNS16 right_ballonet_linear_valve_resistance;
+
+	UNS16 right_ballonet_regime;
 };
 
 struct data_400e_20 {

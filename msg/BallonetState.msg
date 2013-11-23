@@ -11,3 +11,5 @@ bool valve				#
 bool light		# 
 
 float32 linear_valve_resistance
+
+bool manual_regime

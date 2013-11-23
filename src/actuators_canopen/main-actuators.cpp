@@ -659,6 +659,7 @@ CALLBACK(0x400c, 0x20) {
 	RECEIVE_PRINT(M->left_ballonet_lights_state, left_ballonet_lights_state, 1, "%hu state");
 	RECEIVE_PRINT(M->left_ballonet_control, left_ballonet_control, 1, "%hu");
 	RECEIVE_PRINT(M->left_ballonet_linear_valve_resistance, left_ballonet_linear_valve_resistance, 1, "%f Om");
+	RECEIVE_PRINT(M->left_ballonet_regime, left_ballonet_regime, 1, "%hx");
 
 	notify_ros_topic(0x400c, 0x20);
 };
@@ -683,6 +684,7 @@ CALLBACK(0x400d, 0x20) {
 	RECEIVE_PRINT(M->right_ballonet_lights_state, right_ballonet_lights_state, 1, "%hu state");
 	RECEIVE_PRINT(M->right_ballonet_control, right_ballonet_control, 1, "%hu");
 	RECEIVE_PRINT(M->right_ballonet_linear_valve_resistance, right_ballonet_linear_valve_resistance, 1, "%f ???");
+	RECEIVE_PRINT(M->right_ballonet_regime, right_ballonet_regime, 1, "%hx");
 
 	notify_ros_topic(0x400d, 0x20);
 }

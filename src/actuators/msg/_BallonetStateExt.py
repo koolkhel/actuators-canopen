@@ -8,7 +8,7 @@ import actuators.msg
 import std_msgs.msg
 
 class BallonetStateExt(genpy.Message):
-  _md5sum = "c6eabf33e8ccb380c973f70dbc487962"
+  _md5sum = "14ca1d3dc5c2ee85f4011d9334c78a28"
   _type = "actuators/BallonetStateExt"
   _has_header = True #flag to mark the presence of a Header object
   _full_text = """Header header
@@ -52,6 +52,8 @@ bool valve				#
 bool light		# 
 
 float32 linear_valve_resistance
+
+bool manual_regime
 
 """
   __slots__ = ['header','basic_state','errors_cnt','errors_flag1','errors_flag2']
@@ -120,7 +122,7 @@ float32 linear_valve_resistance
         length = len(_x)
       buff.write(struct.pack('<I%ss'%length, length, _x))
       _x = self
-      buff.write(_struct_2d4Bf3B.pack(_x.basic_state.pressureDiff1, _x.basic_state.pressureDiff2, _x.basic_state.fan1, _x.basic_state.fan2, _x.basic_state.valve, _x.basic_state.light, _x.basic_state.linear_valve_resistance, _x.errors_cnt, _x.errors_flag1, _x.errors_flag2))
+      buff.write(_struct_2d4Bf4B.pack(_x.basic_state.pressureDiff1, _x.basic_state.pressureDiff2, _x.basic_state.fan1, _x.basic_state.fan2, _x.basic_state.valve, _x.basic_state.light, _x.basic_state.linear_valve_resistance, _x.basic_state.manual_regime, _x.errors_cnt, _x.errors_flag1, _x.errors_flag2))
     except struct.error as se: self._check_types(se)
     except TypeError as te: self._check_types(te)
 
@@ -163,12 +165,13 @@ float32 linear_valve_resistance
         self.basic_state.header.frame_id = str[start:end]
       _x = self
       start = end
-      end += 27
-      (_x.basic_state.pressureDiff1, _x.basic_state.pressureDiff2, _x.basic_state.fan1, _x.basic_state.fan2, _x.basic_state.valve, _x.basic_state.light, _x.basic_state.linear_valve_resistance, _x.errors_cnt, _x.errors_flag1, _x.errors_flag2,) = _struct_2d4Bf3B.unpack(str[start:end])
+      end += 28
+      (_x.basic_state.pressureDiff1, _x.basic_state.pressureDiff2, _x.basic_state.fan1, _x.basic_state.fan2, _x.basic_state.valve, _x.basic_state.light, _x.basic_state.linear_valve_resistance, _x.basic_state.manual_regime, _x.errors_cnt, _x.errors_flag1, _x.errors_flag2,) = _struct_2d4Bf4B.unpack(str[start:end])
       self.basic_state.fan1 = bool(self.basic_state.fan1)
       self.basic_state.fan2 = bool(self.basic_state.fan2)
       self.basic_state.valve = bool(self.basic_state.valve)
       self.basic_state.light = bool(self.basic_state.light)
+      self.basic_state.manual_regime = bool(self.basic_state.manual_regime)
       return self
     except struct.error as e:
       raise genpy.DeserializationError(e) #most likely buffer underfill
@@ -198,7 +201,7 @@ float32 linear_valve_resistance
         length = len(_x)
       buff.write(struct.pack('<I%ss'%length, length, _x))
       _x = self
-      buff.write(_struct_2d4Bf3B.pack(_x.basic_state.pressureDiff1, _x.basic_state.pressureDiff2, _x.basic_state.fan1, _x.basic_state.fan2, _x.basic_state.valve, _x.basic_state.light, _x.basic_state.linear_valve_resistance, _x.errors_cnt, _x.errors_flag1, _x.errors_flag2))
+      buff.write(_struct_2d4Bf4B.pack(_x.basic_state.pressureDiff1, _x.basic_state.pressureDiff2, _x.basic_state.fan1, _x.basic_state.fan2, _x.basic_state.valve, _x.basic_state.light, _x.basic_state.linear_valve_resistance, _x.basic_state.manual_regime, _x.errors_cnt, _x.errors_flag1, _x.errors_flag2))
     except struct.error as se: self._check_types(se)
     except TypeError as te: self._check_types(te)
 
@@ -242,16 +245,17 @@ float32 linear_valve_resistance
         self.basic_state.header.frame_id = str[start:end]
       _x = self
       start = end
-      end += 27
-      (_x.basic_state.pressureDiff1, _x.basic_state.pressureDiff2, _x.basic_state.fan1, _x.basic_state.fan2, _x.basic_state.valve, _x.basic_state.light, _x.basic_state.linear_valve_resistance, _x.errors_cnt, _x.errors_flag1, _x.errors_flag2,) = _struct_2d4Bf3B.unpack(str[start:end])
+      end += 28
+      (_x.basic_state.pressureDiff1, _x.basic_state.pressureDiff2, _x.basic_state.fan1, _x.basic_state.fan2, _x.basic_state.valve, _x.basic_state.light, _x.basic_state.linear_valve_resistance, _x.basic_state.manual_regime, _x.errors_cnt, _x.errors_flag1, _x.errors_flag2,) = _struct_2d4Bf4B.unpack(str[start:end])
       self.basic_state.fan1 = bool(self.basic_state.fan1)
       self.basic_state.fan2 = bool(self.basic_state.fan2)
       self.basic_state.valve = bool(self.basic_state.valve)
       self.basic_state.light = bool(self.basic_state.light)
+      self.basic_state.manual_regime = bool(self.basic_state.manual_regime)
       return self
     except struct.error as e:
       raise genpy.DeserializationError(e) #most likely buffer underfill
 
 _struct_I = genpy.struct_I
 _struct_3I = struct.Struct("<3I")
-_struct_2d4Bf3B = struct.Struct("<2d4Bf3B")
+_struct_2d4Bf4B = struct.Struct("<2d4Bf4B")

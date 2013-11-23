@@ -399,6 +399,8 @@ struct actuators_model {
 
 	float left_ballonet_linear_valve_resistance;
 
+	UNS16 left_ballonet_regime;
+
 
 	// struct data_400d_20
 	// 1Pa
@@ -413,6 +415,8 @@ struct actuators_model {
 	UNS16 right_ballonet_control;
 
 	float right_ballonet_linear_valve_resistance;
+
+	UNS16 right_ballonet_regime;
 
 	// struct data_400e_20
 	UNS16 helium_valve_open;

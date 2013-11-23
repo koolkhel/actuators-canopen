@@ -947,6 +947,15 @@ actuators::BallonetState getLeftBallonetState(struct actuators_model *model) {
 		break;
 	}
 
+	switch (model->left_ballonet_regime) {
+	case 0x51:
+		leftBallonet.manual_regime = true;
+		break;
+	default:
+		leftBallonet.manual_regime = false;
+		break;
+	}
+
 	switch (model->left_ballonet_control) {
 	case 0:
 		leftBallonet.fan1 = 0;
@@ -1000,6 +1009,15 @@ actuators::BallonetState getRightBallonetState(struct actuators_model *model) {
 	case 0xAA:
 		rightBallonet.light = 1;
 		break;
+	}
+
+	switch (model->right_ballonet_regime) {
+		case 0x51:
+			rightBallonet.manual_regime = true;
+			break;
+		default:
+			rightBallonet.manual_regime = false;
+			break;
 	}
 
 	switch (model->right_ballonet_control) {
