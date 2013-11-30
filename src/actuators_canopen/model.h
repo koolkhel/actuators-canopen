@@ -24,13 +24,99 @@ enum PACKED engine_fix {
 #define MAKE_BLUE "\e[34m"
 #define MAKE_YELLOW "\e[33m"
 
+struct heartbeat_node_status {
+	// 0 == ok
+	// 1 == bad
+	UNS8 block_status[16];
+};
+
 /**
  * all domain level variables are grouped in one struct
  */
 struct actuators_model {
+	// emcy start
+	struct heartbeat_node_status node_status;
+
+	UNS8 left_horizontal_control_surface_1_status;
+	UNS8 left_horizontal_control_surface_2_status;
+
+	UNS8 right_horizontal_control_surface_3_status;
+	UNS8 right_horizontal_control_surface_4_status;
+
+	UNS8 left_vertical_control_surface_5_status;
+	UNS8 left_vertical_control_surface_6_status;
+
+	UNS8 right_vertical_control_surface_7_status;
+	UNS8 right_vertical_control_surface_8_status;
+
+	UNS8 left_electromotor_status;
+	UNS8 right_electromotor_status;
+
+	UNS8 left_electromotor_servo_status;
+	UNS8 right_electromotor_servo_status;
+
+	UNS8 left_main_engine_temperature_sensor_status             :1;
+	UNS8 left_main_engine_shutdown_status                       :1;
+	UNS8 left_main_engine_initialization_status                 :1;
+	UNS8 left_main_engine_throttle_servo_status                 :1;
+	UNS8 left_main_engine_failure_code                          :2;
+
+	UNS8 left_main_engine_fuel_pressure_sensor_status           :1;
+	UNS8 left_main_engine_cylinder_1_temperature_sensor_status  :1;
+	UNS8 left_main_engine_cylinder_2_temperature_sensor_status  :1;
+	UNS8 left_main_engine_exhaust_temperature_sensor_status     :1;
+	UNS8 left_main_engine_aux_fuel_tank_sensor_status           :1;
+	UNS8 left_main_engine_main_fuel_tank_sensor_status          :1;
+	UNS8 left_main_engine_failure_code_2                        :2;
+
+	UNS8 right_main_engine_temperature_sensor_status            :1;
+	UNS8 right_main_engine_shutdown_status                      :1;
+	UNS8 right_main_engine_initialization_status                :1;
+	UNS8 right_main_engine_throttle_servo_status                :1;
+	UNS8 right_main_engine_failure_code                         :2;
+
+	UNS8 right_main_engine_fuel_pressure_sensor_status          :1;
+	UNS8 right_main_engine_cylinder_1_temperature_sensor_status :1;
+	UNS8 right_main_engine_cylinder_2_temperature_sensor_status :1;
+	UNS8 right_main_engine_exhaust_temperature_sensor_status    :1;
+	UNS8 right_main_engine_aux_fuel_tank_sensor_status          :1;
+	UNS8 right_main_engine_main_fuel_tank_sensor_status         :1;
+	UNS8 right_main_engine_failure_code_2                       :2;
+
+	UNS8 left_main_engine_servo_mechanical_structure_status     :1;
+	UNS8 left_main_engine_servo_dc_current_status               :1;
+	UNS8 left_main_engine_servo_dc_voltage_status               :1;
+	UNS8 left_main_engine_servo_temperature_sensor_status       :1;
+	UNS8 left_main_engine_servo_communication_link_status       :1;
+	UNS8 left_main_engine_servo_sensor_failure                  :1;
+	UNS8 left_main_engine_servo_failure_code                    :2;
+
+	UNS8 right_main_engine_servo_mechanical_structure_status    :1;
+	UNS8 right_main_engine_servo_dc_current_status              :1;
+	UNS8 right_main_engine_servo_dc_voltage_status              :1;
+	UNS8 right_main_engine_servo_temperature_sensor_status      :1;
+	UNS8 right_main_engine_servo_communication_link_status      :1;
+	UNS8 right_main_engine_servo_sensor_failure                 :1;
+	UNS8 right_main_engine_servo_failure_code                   :2;
+
+	UNS8 left_ballonet_valve_open_possible                      :1;
+	UNS8 left_ballonet_valve_close_possible                     :1;
+	UNS8 left_ballonet_fan_possible                             :1;
+	UNS8 left_ballonet_failure_code                             :2;
+
+	UNS8 right_ballonet_valve_open_possible                     :1;
+	UNS8 right_ballonet_valve_close_possible                    :1;
+	UNS8 right_ballonet_fan_possible                            :1;
+	UNS8 right_ballonet_failure_code                            :2;
+	// emcy end
+
+	// remote start
 	UNS8 remote_control_allowed_state;
 
 	volatile UNS8 remote_control_enabled;
+
+	// remote end
+
 #if 0
 	// struct data_4002_20
 	UNS16 failure_code;

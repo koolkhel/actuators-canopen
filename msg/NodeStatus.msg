@@ -1,0 +1,16 @@
+byte NODE_OK = 0
+byte NODE_OFFLINE = 1
+
+Header header
+
+byte load_status
+byte power_system_status
+byte left_ballonet_status
+byte right_ballonet_status
+byte left_main_engine_servo_status
+byte right_main_engine_servo_status
+byte left_main_engine_status
+byte right_main_engine_status
+byte tail_electromotor_status
+byte helium_valve_status
+byte control_surface_status

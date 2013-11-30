@@ -15,6 +15,144 @@
 // ensure everything is 1 byte aligned
 #pragma pack(push,1)
 
+// -------------------- EMCY ----------------------
+
+union emcy_load_804 {
+
+};
+
+union emcy_control_surface_806 {
+	struct {
+		UNS8 left_horizontal_control_surface_1_status;
+		UNS8 left_horizontal_control_surface_2_status;
+
+		UNS8 right_horizontal_control_surface_3_status;
+		UNS8 right_horizontal_control_surface_4_status;
+
+		UNS8 left_vertical_control_surface_5_status;
+		UNS8 left_vertical_control_surface_6_status;
+
+		UNS8 right_vertical_control_surface_7_status;
+		UNS8 right_vertical_control_surface_8_status;
+	};
+	INTEGER64 data;
+};
+
+union emcy_tail_electromotor_807 {
+	struct {
+		UNS8 left_electromotor_status;
+		UNS8 right_electromotor_status;
+
+		UNS8 left_electromotor_servo_status;
+		UNS8 right_electromotor_servo_status;
+	};
+	INTEGER32 data;
+};
+
+union emcy_left_main_engine_808 {
+	struct {
+		// byte 1
+		UNS8 reserved                                              :2;
+		UNS8 left_main_engine_temperature_sensor_status            :1;
+		UNS8 left_main_engine_shutdown_status                      :1;
+		UNS8 left_main_engine_initialization_status                :1;
+		UNS8 left_main_engine_throttle_servo_status                :1;
+		UNS8 left_main_engine_failure_code                         :2;
+
+		UNS8 left_main_engine_fuel_pressure_sensor_status          :1;
+		UNS8 left_main_engine_cylinder_1_temperature_sensor_status :1;
+		UNS8 left_main_engine_cylinder_2_temperature_sensor_status :1;
+		UNS8 left_main_engine_exhaust_temperature_sensor_status    :1;
+		UNS8 left_main_engine_aux_fuel_tank_sensor_status          :1;
+		UNS8 left_main_engine_main_fuel_tank_sensor_status         :1;
+		UNS8 left_main_engine_failure_code_2                       :2;
+	};
+	INTEGER16 data;
+};
+CTASSERT(sizeof(union emcy_left_main_engine_808) == 2);
+
+union emcy_right_main_engine_809 {
+	struct {
+		// byte 1
+		UNS8 reserved                                               :2;
+		UNS8 right_main_engine_temperature_sensor_status            :1;
+		UNS8 right_main_engine_shutdown_status                      :1;
+		UNS8 right_main_engine_initialization_status                :1;
+		UNS8 right_main_engine_throttle_servo_status                :1;
+		UNS8 right_main_engine_failure_code                         :2;
+
+		UNS8 right_main_engine_fuel_pressure_sensor_status          :1;
+		UNS8 right_main_engine_cylinder_1_temperature_sensor_status :1;
+		UNS8 right_main_engine_cylinder_2_temperature_sensor_status :1;
+		UNS8 right_main_engine_exhaust_temperature_sensor_status    :1;
+		UNS8 right_main_engine_aux_fuel_tank_sensor_status          :1;
+		UNS8 right_main_engine_main_fuel_tank_sensor_status         :1;
+		UNS8 right_main_engine_failure_code_2                       :2;
+	};
+	INTEGER16 data;
+};
+CTASSERT(sizeof(union emcy_right_main_engine_809) == 2);
+
+union emcy_left_main_engine_servo_80A {
+	struct {
+		UNS8 left_main_engine_servo_mechanical_structure_status :1;
+		UNS8 left_main_engine_servo_dc_current_status           :1;
+		UNS8 left_main_engine_servo_dc_voltage_status           :1;
+		UNS8 left_main_engine_servo_temperature_sensor_status   :1;
+		UNS8 left_main_engine_servo_communication_link_status   :1;
+		UNS8 left_main_engine_servo_sensor_failure              :1;
+		UNS8 left_main_engine_servo_failure_code                :2;
+	};
+	INTEGER8 data;
+};
+CTASSERT(sizeof(union emcy_left_main_engine_servo_80A) == 1);
+
+union emcy_right_main_engine_servo_80B {
+	struct {
+		UNS8 right_main_engine_servo_mechanical_structure_status :1;
+		UNS8 right_main_engine_servo_dc_current_status           :1;
+		UNS8 right_main_engine_servo_dc_voltage_status           :1;
+		UNS8 right_main_engine_servo_temperature_sensor_status   :1;
+		UNS8 right_main_engine_servo_communication_link_status   :1;
+		UNS8 right_main_engine_servo_sensor_failure              :1;
+		UNS8 right_main_engine_servo_failure_code                :2;
+	};
+	INTEGER64 data;
+};
+
+union emcy_left_ballonet_80C {
+	struct {
+		UNS8 left_ballonet_valve_open_possible   :1;
+		UNS8 left_ballonet_valve_close_possible  :1;
+		UNS8 left_ballonet_fan_possible          :1;
+		UNS8 reserved                            :3;
+		UNS8 left_ballonet_failure_code          :2;
+	};
+	INTEGER8 data;
+};
+CTASSERT(sizeof(union emcy_left_ballonet_80C) == 1);
+
+union emcy_right_ballonet_80D {
+	struct {
+		UNS8 right_ballonet_valve_open_possible   :1;
+		UNS8 right_ballonet_valve_close_possible  :1;
+		UNS8 right_ballonet_fan_possible          :1;
+		UNS8 reserved                             :3;
+		UNS8 right_ballonet_failure_code          :2;
+	};
+	INTEGER8 data;
+};
+CTASSERT(sizeof(union emcy_right_ballonet_80D) == 1);
+
+union emcy_helium_valve_80E {
+	struct {
+
+	};
+	INTEGER64 data;
+};
+
+// -------------------- // EMCY -------------------
+
 union control_surface_206 {
 	struct {
 		// * 100

@@ -55,6 +55,10 @@
 
 #include "actuators/HeliumValveState.h"
 
+#include "actuators/NodeStatus.h"
+
+#include "actuators/FailureState.h"
+
 #include "model.h"
 #include "canopen-data.h"
 #include "canopen-util.h"
@@ -769,6 +773,7 @@ static bool set_motors_control(actuators::SetMotorsControlRequest &req,
 
 	struct timeval now_tv;
 	double diff = 0.0;
+	int result = 0;
 
 	gettimeofday(&now_tv, NULL);
 
@@ -786,7 +791,7 @@ static bool set_motors_control(actuators::SetMotorsControlRequest &req,
 
 	_set_electromotor_angle(req.left_electromotors_servo_anglex, req.left_electromotors_servo_angley,
 			req.right_electromotors_servo_anglex, req.right_electromotors_servo_angley);
-	enqueue_PDO(0x3);
+	result |= enqueue_PDO(0x3);
 
 	ROS_ERROR("i'm motors control");
 
@@ -794,17 +799,19 @@ static bool set_motors_control(actuators::SetMotorsControlRequest &req,
 
 
 	_set_left_main_engine_rotation_angle(req.left_engine_servo_angle);
-	enqueue_PDO(0x0E);
+	result |= enqueue_PDO(0x0E);
 	_set_right_main_engine_rotation_angle(req.right_engine_servo_angle);
-	enqueue_PDO(0x0F);
+	result |= enqueue_PDO(0x0F);
 
 	_set_left_motor_control(req.left_engine_control_regime, req.left_engine_control);
-	enqueue_PDO(0x12);
+	result |= enqueue_PDO(0x12);
 
 	_set_right_motor_control(req.right_engine_control_regime, req.right_engine_control);
-	enqueue_PDO(0x13);
+	result |= enqueue_PDO(0x13);
 
 	reportMotorsControl(req);
+
+	resp.result = result;
 
 	return true;
 }
@@ -866,6 +873,46 @@ static ros::Publisher heliumValveStatePublisher;
 static ros::Publisher remoteControlStatePublisher;
 
 static ros::Publisher controlSurfaceStatePublisher;
+
+static ros::Publisher nodeStatusPublisher;
+
+static ros::Publisher failureStatePublisher;
+
+enum node_id_t {
+	LOAD_NODE                    = 0x4,
+	POWER_SYSTEM_NODE            = 0x5,
+	CONTROL_SURFACE_NODE         = 0x6,
+	TAIL_ELECTROMOTOR_NODE       = 0x7,
+	LEFT_MAIN_ENGINE_NODE        = 0x8,
+	RIGHT_MAIN_ENGINE_NODE       = 0x9,
+	LEFT_MAIN_ENGINE_SERVO_NODE  = 0xa,
+	RIGHT_MAIN_ENGINE_SERVO_NODE = 0xb,
+	LEFT_BALLONET_NODE           = 0xc,
+	RIGHT_BALLONET_NODE          = 0xd,
+	HELIUM_VALVE_NODE            = 0xe
+};
+
+actuators::NodeStatus getNodeStatus(struct actuators_model *model) {
+	actuators::NodeStatus status;
+
+	status.header.stamp = ros::Time::now();
+
+	status.control_surface_status   = model->node_status.block_status[CONTROL_SURFACE_NODE];
+	status.helium_valve_status      = model->node_status.block_status[HELIUM_VALVE_NODE];
+	status.tail_electromotor_status = model->node_status.block_status[TAIL_ELECTROMOTOR_NODE];
+	status.load_status              = model->node_status.block_status[LOAD_NODE];
+	status.power_system_status      = model->node_status.block_status[POWER_SYSTEM_NODE];
+	status.left_main_engine_status  = model->node_status.block_status[LEFT_MAIN_ENGINE_NODE];
+	status.right_main_engine_status = model->node_status.block_status[RIGHT_MAIN_ENGINE_NODE];
+
+	status.left_ballonet_status     = model->node_status.block_status[LEFT_BALLONET_NODE];
+	status.right_ballonet_status    = model->node_status.block_status[RIGHT_BALLONET_NODE];
+
+	status.left_main_engine_servo_status  = model->node_status.block_status[LEFT_MAIN_ENGINE_SERVO_NODE];
+	status.right_main_engine_servo_status = model->node_status.block_status[RIGHT_MAIN_ENGINE_SERVO_NODE];
+
+	return status;
+}
 
 actuators::EngineState getLeftMainEngineState(struct actuators_model *model) {
 	actuators::EngineState engineState;
@@ -1336,6 +1383,86 @@ actuators::ControlSurfaceState getControlSurfaceState(struct actuators_model *mo
 	return state;
 }
 
+actuators::FailureState getFailureState(struct actuators_model *model) {
+	actuators::FailureState state;
+
+	state.header.stamp = ros::Time::now();
+
+	state.left_horizontal_control_surface_1_status = model->left_horizontal_control_surface_1_status;
+	state.left_horizontal_control_surface_2_status = model->left_horizontal_control_surface_2_status;
+
+	state.right_horizontal_control_surface_3_status = model->right_horizontal_control_surface_3_status;
+	state.right_horizontal_control_surface_4_status = model->right_horizontal_control_surface_4_status;
+
+	state.left_vertical_control_surface_5_status = model->left_vertical_control_surface_5_status;
+	state.left_vertical_control_surface_6_status = model->left_vertical_control_surface_6_status;
+
+	state.right_vertical_control_surface_7_status = model->right_vertical_control_surface_7_status;
+	state.right_vertical_control_surface_8_status = model->right_vertical_control_surface_8_status;
+
+	state.left_electromotor_status = model->left_electromotor_status;
+	state.right_electromotor_status = model->right_electromotor_status;
+
+	state.left_electromotor_servo_status = model->left_electromotor_servo_status;
+	state.right_electromotor_servo_status = model->right_electromotor_servo_status;
+
+	state.left_main_engine_temperature_sensor_status = model->left_main_engine_temperature_sensor_status;
+	state.left_main_engine_shutdown_status = model->left_main_engine_shutdown_status;
+	state.left_main_engine_initialization_status = model->left_main_engine_initialization_status;
+	state.left_main_engine_throttle_servo_status = model->left_main_engine_throttle_servo_status;
+	state.left_main_engine_failure_code = model->left_main_engine_failure_code;
+
+	state.left_main_engine_fuel_pressure_sensor_status = model->left_main_engine_fuel_pressure_sensor_status;
+	state.left_main_engine_cylinder_1_temperature_sensor_status = model->left_main_engine_cylinder_1_temperature_sensor_status;
+	state.left_main_engine_cylinder_2_temperature_sensor_status = model->left_main_engine_cylinder_2_temperature_sensor_status;
+	state.left_main_engine_exhaust_temperature_sensor_status = model->left_main_engine_exhaust_temperature_sensor_status;
+	state.left_main_engine_aux_fuel_tank_sensor_status = model->left_main_engine_aux_fuel_tank_sensor_status;
+	state.left_main_engine_main_fuel_tank_sensor_status = model->left_main_engine_main_fuel_tank_sensor_status;
+	state.left_main_engine_failure_code_2 = model->left_main_engine_failure_code_2;
+
+	state.right_main_engine_temperature_sensor_status = model->right_main_engine_temperature_sensor_status;
+	state.right_main_engine_shutdown_status = model->right_main_engine_shutdown_status;
+	state.right_main_engine_initialization_status = model->right_main_engine_initialization_status;
+	state.right_main_engine_throttle_servo_status = model->right_main_engine_throttle_servo_status;
+	state.right_main_engine_failure_code = model->right_main_engine_failure_code;
+
+	state.right_main_engine_fuel_pressure_sensor_status = model->right_main_engine_fuel_pressure_sensor_status;
+	state.right_main_engine_cylinder_1_temperature_sensor_status = model->right_main_engine_cylinder_1_temperature_sensor_status;
+	state.right_main_engine_cylinder_2_temperature_sensor_status = model->right_main_engine_cylinder_2_temperature_sensor_status;
+	state.right_main_engine_exhaust_temperature_sensor_status = model->right_main_engine_exhaust_temperature_sensor_status;
+	state.right_main_engine_aux_fuel_tank_sensor_status = model->right_main_engine_aux_fuel_tank_sensor_status;
+	state.right_main_engine_main_fuel_tank_sensor_status = model->right_main_engine_main_fuel_tank_sensor_status;
+	state.right_main_engine_failure_code_2 = model->right_main_engine_failure_code_2;
+
+	state.left_main_engine_servo_mechanical_structure_status = model->left_main_engine_servo_mechanical_structure_status;
+	state.left_main_engine_servo_dc_current_status = model->left_main_engine_servo_dc_current_status;
+	state.left_main_engine_servo_dc_voltage_status = model->left_main_engine_servo_dc_voltage_status;
+	state.left_main_engine_servo_temperature_sensor_status = model->left_main_engine_servo_temperature_sensor_status;
+	state.left_main_engine_servo_communication_link_status = model->left_main_engine_servo_communication_link_status;
+	state.left_main_engine_servo_sensor_failure = model->left_main_engine_servo_sensor_failure;
+	state.left_main_engine_servo_failure_code = model->left_main_engine_servo_failure_code;
+
+	state.right_main_engine_servo_mechanical_structure_status = model->right_main_engine_servo_mechanical_structure_status;
+	state.right_main_engine_servo_dc_current_status = model->right_main_engine_servo_dc_current_status;
+	state.right_main_engine_servo_dc_voltage_status = model->right_main_engine_servo_dc_voltage_status;
+	state.right_main_engine_servo_temperature_sensor_status = model->right_main_engine_servo_temperature_sensor_status;
+	state.right_main_engine_servo_communication_link_status = model->right_main_engine_servo_communication_link_status;
+	state.right_main_engine_servo_sensor_failure = model->right_main_engine_servo_sensor_failure;
+	state.right_main_engine_servo_failure_code = model->right_main_engine_servo_failure_code;
+
+	state.left_ballonet_valve_open_possible = model->left_ballonet_valve_open_possible;
+	state.left_ballonet_valve_close_possible = model->left_ballonet_valve_close_possible;
+	state.left_ballonet_fan_possible = model->left_ballonet_fan_possible;
+	state.left_ballonet_failure_code = model->left_ballonet_failure_code;
+
+	state.right_ballonet_valve_open_possible = model->right_ballonet_valve_open_possible;
+	state.right_ballonet_valve_close_possible = model->right_ballonet_valve_close_possible;
+	state.right_ballonet_fan_possible = model->right_ballonet_fan_possible;
+	state.right_ballonet_failure_code = model->right_ballonet_failure_code;
+
+	return state;
+}
+
 void report_topics(void) {
 	struct actuators_model *model;
 	int i = 0;
@@ -1343,9 +1470,11 @@ void report_topics(void) {
 	model = &MODEL;
 
 	remoteControlStatePublisher.publish(getRemoteControlState(model));
+	nodeStatusPublisher.publish(getNodeStatus(model));
+	failureStatePublisher.publish(getFailureState(model));
 
 	for (i = 0; i < callback_no; i++) {
-		if (!sem_trywait(&callbacks[i].semaphore)) {
+		if (callbacks[i].semaphore) {
 			switch (callbacks[i].index) {
 			case 0x4000:
 				break;
@@ -1388,6 +1517,8 @@ void report_topics(void) {
 				heliumValveStatePublisher.publish(getHeliumValveState(model));
 				break;
 			}
+
+			callbacks[i].semaphore = 0;
 		}
 	}
 }
@@ -1430,6 +1561,10 @@ void *ros_main(void *data) {
 
 	controlSurfaceStatePublisher = nh.advertise<actuators::ControlSurfaceState>("/control_surface_state", 10);
 
+	nodeStatusPublisher = nh.advertise<actuators::NodeStatus>("/node_status", 10);
+
+	failureStatePublisher = nh.advertise<actuators::FailureState>("/failure_state", 10);
+
 	set_generator_control_service = nh.advertiseService("/actuators/set_generator_control", set_generator_control);
 	set_power_relay_service = nh.advertiseService("/actuators/set_power_relay", set_power_relay);
 
@@ -1461,7 +1596,7 @@ void *ros_main(void *data) {
 	while (ros::ok() && !exit_flag) {
 		report_topics();
 		ros::spinOnce();
-		ros::Duration(0.001).sleep();
+		ros::Duration(0.05).sleep();
 	}
 
 	ros::shutdown();

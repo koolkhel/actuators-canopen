@@ -1,3 +1,7 @@
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+
 #include <stdio.h>
 #include <canfestival.h>
 #include <data.h>
@@ -6,8 +10,12 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <time.h>
-
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <fcntl.h>
 #include <signal.h>
+#include <pthread.h>
 
 #include "./actuators.h"
 #include "./model.h"
@@ -32,6 +40,9 @@ pthread_t expedited_sdo_thread;
 pthread_t matlab_thread;
 
 sig_atomic_t exit_flag = 0;
+
+int pipe_pdo_read = 0;
+int pipe_pdo_write = 0;
 
 /**************************** INIT ********************************************/
 void Init(CO_Data *d, UNS32 id) {
@@ -78,10 +89,13 @@ struct Indigo_OD_Callback callbacks[200];
 
 #define DECLARE_M(INDEX, SUBINDEX) \
 	if (size != sizeof(struct data_## INDEX ## _## SUBINDEX)) {\
-		fprintf(error_log, "%ld size mismatch: %d against reference %dm aborting\n", time(NULL), size, sizeof(struct data_## INDEX ## _## SUBINDEX));\
+		fprintf(error_log, "%ld size mismatch: %d against reference %d aborting\n", time(NULL), size, sizeof(struct data_## INDEX ## _## SUBINDEX));\
 		printf("%ld size mismatch: %d against reference %d for index 0x" #INDEX " subindex 0x" #SUBINDEX "\n", time(NULL), size, sizeof(struct data_## INDEX ## _## SUBINDEX));\
 	};\
 	struct data_## INDEX ##_## SUBINDEX *M = (struct data_ ## INDEX ##_## SUBINDEX *) data
+
+#define DECLARE_EMCY(NAME, CODE) \
+	union emcy_## NAME ##_## CODE *emcy = (union emcy_## NAME ##_## CODE *) data
 
 // assert(size == sizeof(struct data_## INDEX ## _## SUBINDEX));
 
@@ -241,13 +255,169 @@ PDO_CALLBACK(0x5103, 0x204, remote_control_switch) {
 
 	return OD_SUCCESSFUL;
 }
+//////////////////////////////////////////////////////
+//                    EMCY
+//////////////////////////////////////////////////////
+
+PDO_CALLBACK(0x5110, 0x804, emcy_load) {
+	DECLARE_PDO_CALLBACK_VARS;
+
+	DECLARE_EMCY(load, 804);
+
+	return OD_SUCCESSFUL;
+}
+
+PDO_CALLBACK(0x5111, 0x806, emcy_control_surface) {
+	DECLARE_PDO_CALLBACK_VARS;
+
+	DECLARE_EMCY(control_surface, 806);
+
+	RECEIVE_PRINT(emcy->left_horizontal_control_surface_1_status, left_horizontal_control_surface_1_status, 1, "%hhu");
+	RECEIVE_PRINT(emcy->left_horizontal_control_surface_2_status, left_horizontal_control_surface_2_status, 1, "%hhu");
+
+	RECEIVE_PRINT(emcy->right_horizontal_control_surface_3_status, right_horizontal_control_surface_3_status, 1, "%hhu");
+	RECEIVE_PRINT(emcy->right_horizontal_control_surface_4_status, right_horizontal_control_surface_4_status, 1, "%hhu");
+
+	RECEIVE_PRINT(emcy->left_vertical_control_surface_5_status, left_vertical_control_surface_5_status, 1, "%hhu");
+	RECEIVE_PRINT(emcy->left_vertical_control_surface_6_status, left_vertical_control_surface_6_status, 1, "%hhu");
+
+	RECEIVE_PRINT(emcy->right_vertical_control_surface_7_status, right_vertical_control_surface_7_status, 1, "%hhu");
+	RECEIVE_PRINT(emcy->right_vertical_control_surface_8_status, right_vertical_control_surface_8_status, 1, "%hhu");
+
+	return OD_SUCCESSFUL;
+}
+
+PDO_CALLBACK(0x5112, 0x807, emcy_tail_electromotor) {
+	DECLARE_PDO_CALLBACK_VARS;
+
+	DECLARE_EMCY(tail_electromotor, 807);
+
+	RECEIVE_PRINT(emcy->left_electromotor_servo_status, left_electromotor_servo_status, 1, "%hhu");
+	RECEIVE_PRINT(emcy->right_electromotor_servo_status, right_electromotor_servo_status, 1, "%hhu");
+
+	RECEIVE_PRINT(emcy->left_electromotor_status, left_electromotor_status, 1, "%hhu");
+	RECEIVE_PRINT(emcy->right_electromotor_status, right_electromotor_status, 1, "%hhu");
+
+	return OD_SUCCESSFUL;
+}
+
+PDO_CALLBACK(0x5113, 0x808, emcy_left_main_engine) {
+	DECLARE_PDO_CALLBACK_VARS;
+
+	DECLARE_EMCY(left_main_engine, 808);
+
+	RECEIVE_PRINT(emcy->left_main_engine_failure_code, left_main_engine_failure_code, 1, "%hhu");
+	RECEIVE_PRINT(emcy->left_main_engine_failure_code_2, left_main_engine_failure_code_2, 1, "%hhu");
+	RECEIVE_PRINT(emcy->left_main_engine_aux_fuel_tank_sensor_status, left_main_engine_aux_fuel_tank_sensor_status, 1, "%hhu");
+	RECEIVE_PRINT(emcy->left_main_engine_cylinder_1_temperature_sensor_status, left_main_engine_cylinder_1_temperature_sensor_status, 1, "%hhu");
+	RECEIVE_PRINT(emcy->left_main_engine_cylinder_2_temperature_sensor_status, left_main_engine_cylinder_2_temperature_sensor_status, 1, "%hhu");
+	RECEIVE_PRINT(emcy->left_main_engine_exhaust_temperature_sensor_status, left_main_engine_exhaust_temperature_sensor_status, 1, "%hhu");
+	RECEIVE_PRINT(emcy->left_main_engine_fuel_pressure_sensor_status, left_main_engine_fuel_pressure_sensor_status, 1, "%hhu");
+	RECEIVE_PRINT(emcy->left_main_engine_initialization_status, left_main_engine_initialization_status, 1, "%hhu");
+	RECEIVE_PRINT(emcy->left_main_engine_main_fuel_tank_sensor_status, left_main_engine_main_fuel_tank_sensor_status, 1, "%hhu");
+	RECEIVE_PRINT(emcy->left_main_engine_shutdown_status, left_main_engine_shutdown_status, 1, "%hhu");
+	RECEIVE_PRINT(emcy->left_main_engine_temperature_sensor_status, left_main_engine_temperature_sensor_status, 1, "%hhu");
+	RECEIVE_PRINT(emcy->left_main_engine_throttle_servo_status, left_main_engine_throttle_servo_status, 1, "%hhu");
+
+	return OD_SUCCESSFUL;
+}
+
+PDO_CALLBACK(0x5114, 0x809, emcy_right_main_engine) {
+	DECLARE_PDO_CALLBACK_VARS;
+
+	DECLARE_EMCY(right_main_engine, 809);
+
+	RECEIVE_PRINT(emcy->right_main_engine_failure_code, right_main_engine_failure_code, 1, "%hhu");
+	RECEIVE_PRINT(emcy->right_main_engine_failure_code_2, right_main_engine_failure_code_2, 1, "%hhu");
+	RECEIVE_PRINT(emcy->right_main_engine_aux_fuel_tank_sensor_status, right_main_engine_aux_fuel_tank_sensor_status, 1, "%hhu");
+	RECEIVE_PRINT(emcy->right_main_engine_cylinder_1_temperature_sensor_status, right_main_engine_cylinder_1_temperature_sensor_status, 1, "%hhu");
+	RECEIVE_PRINT(emcy->right_main_engine_cylinder_2_temperature_sensor_status, right_main_engine_cylinder_2_temperature_sensor_status, 1, "%hhu");
+	RECEIVE_PRINT(emcy->right_main_engine_exhaust_temperature_sensor_status, right_main_engine_exhaust_temperature_sensor_status, 1, "%hhu");
+	RECEIVE_PRINT(emcy->right_main_engine_fuel_pressure_sensor_status, right_main_engine_fuel_pressure_sensor_status, 1, "%hhu");
+	RECEIVE_PRINT(emcy->right_main_engine_initialization_status, right_main_engine_initialization_status, 1, "%hhu");
+	RECEIVE_PRINT(emcy->right_main_engine_main_fuel_tank_sensor_status, right_main_engine_main_fuel_tank_sensor_status, 1, "%hhu");
+	RECEIVE_PRINT(emcy->right_main_engine_shutdown_status, right_main_engine_shutdown_status, 1, "%hhu");
+	RECEIVE_PRINT(emcy->right_main_engine_temperature_sensor_status, right_main_engine_temperature_sensor_status, 1, "%hhu");
+	RECEIVE_PRINT(emcy->right_main_engine_throttle_servo_status, right_main_engine_throttle_servo_status, 1, "%hhu");
+
+	return OD_SUCCESSFUL;
+}
+
+PDO_CALLBACK(0x5115, 0x80a, emcy_left_main_engine_servo) {
+	DECLARE_PDO_CALLBACK_VARS;
+
+	DECLARE_EMCY(left_main_engine_servo, 80A);
+
+	RECEIVE_PRINT(emcy->left_main_engine_servo_communication_link_status, left_main_engine_servo_communication_link_status, 1, "%hhu");
+	RECEIVE_PRINT(emcy->left_main_engine_servo_dc_current_status, left_main_engine_servo_dc_current_status, 1, "%hhu");
+	RECEIVE_PRINT(emcy->left_main_engine_servo_dc_voltage_status, left_main_engine_servo_dc_voltage_status, 1, "%hhu");
+	RECEIVE_PRINT(emcy->left_main_engine_servo_failure_code, left_main_engine_servo_failure_code, 1, "%hhu");
+	RECEIVE_PRINT(emcy->left_main_engine_servo_mechanical_structure_status, left_main_engine_servo_mechanical_structure_status, 1, "%hhu");
+	RECEIVE_PRINT(emcy->left_main_engine_servo_sensor_failure, left_main_engine_servo_sensor_failure, 1, "%hhu");
+	RECEIVE_PRINT(emcy->left_main_engine_servo_temperature_sensor_status, left_main_engine_servo_temperature_sensor_status, 1, "%hhu");
+
+	return OD_SUCCESSFUL;
+}
+
+PDO_CALLBACK(0x5116, 0x80b, emcy_right_main_engine_servo) {
+	DECLARE_PDO_CALLBACK_VARS;
+
+	DECLARE_EMCY(right_main_engine_servo, 80B);
+
+	RECEIVE_PRINT(emcy->right_main_engine_servo_communication_link_status, right_main_engine_servo_communication_link_status, 1, "%hhu");
+	RECEIVE_PRINT(emcy->right_main_engine_servo_dc_current_status, right_main_engine_servo_dc_current_status, 1, "%hhu");
+	RECEIVE_PRINT(emcy->right_main_engine_servo_dc_voltage_status, right_main_engine_servo_dc_voltage_status, 1, "%hhu");
+	RECEIVE_PRINT(emcy->right_main_engine_servo_failure_code, right_main_engine_servo_failure_code, 1, "%hhu");
+	RECEIVE_PRINT(emcy->right_main_engine_servo_mechanical_structure_status, right_main_engine_servo_mechanical_structure_status, 1, "%hhu");
+	RECEIVE_PRINT(emcy->right_main_engine_servo_sensor_failure, right_main_engine_servo_sensor_failure, 1, "%hhu");
+	RECEIVE_PRINT(emcy->right_main_engine_servo_temperature_sensor_status, right_main_engine_servo_temperature_sensor_status, 1, "%hhu");
+
+	return OD_SUCCESSFUL;
+}
+
+PDO_CALLBACK(0x5117, 0x80c, emcy_left_ballonet) {
+	DECLARE_PDO_CALLBACK_VARS;
+
+	DECLARE_EMCY(left_ballonet, 80C);
+
+	RECEIVE_PRINT(emcy->left_ballonet_failure_code, left_ballonet_failure_code, 1, "%hhu");
+	RECEIVE_PRINT(emcy->left_ballonet_fan_possible, left_ballonet_fan_possible, 1, "%hhu");
+	RECEIVE_PRINT(emcy->left_ballonet_valve_close_possible, left_ballonet_valve_close_possible, 1, "%hhu");
+	RECEIVE_PRINT(emcy->left_ballonet_valve_open_possible, left_ballonet_valve_open_possible, 1, "%hhu");
+
+	return OD_SUCCESSFUL;
+}
+
+PDO_CALLBACK(0x5118, 0x80d, emcy_right_ballonet) {
+	DECLARE_PDO_CALLBACK_VARS;
+
+	DECLARE_EMCY(right_ballonet, 80D);
+
+	RECEIVE_PRINT(emcy->right_ballonet_failure_code, right_ballonet_failure_code, 1, "%hhu");
+	RECEIVE_PRINT(emcy->right_ballonet_fan_possible, right_ballonet_fan_possible, 1, "%hhu");
+	RECEIVE_PRINT(emcy->right_ballonet_valve_close_possible, right_ballonet_valve_close_possible, 1, "%hhu");
+	RECEIVE_PRINT(emcy->right_ballonet_valve_open_possible, right_ballonet_valve_open_possible, 1, "%hhu");
+
+	return OD_SUCCESSFUL;
+}
+
+PDO_CALLBACK(0x5119, 0x80e, emcy_helium_valve) {
+	DECLARE_PDO_CALLBACK_VARS;
+
+	return OD_SUCCESSFUL;
+}
+
+
+////////////////////////////////////////////////////////
+//            EMCY end
+////////////////////////////////////////////////////////
 
 void notify_ros_topic(UNS16 index, UNS8 subindex) {
 	int i = 0;
 
 	for (i = 0; i < callback_no; i++) {
 		if (callbacks[i].index == index && callbacks[i].subindex == subindex) {
-			sem_post(&callbacks[i].semaphore);
+			callbacks[i].semaphore = 1;
 			break;
 		}
 	}
@@ -809,6 +979,19 @@ void *sdo_polling_thread(void *arg) {
 
 	UNS8 pollable_entries_no = sizeof(pollable_entries) / sizeof(pollable_entries[0]);
 
+	pthread_mutex_t never_happens_mutex = PTHREAD_MUTEX_INITIALIZER;
+	pthread_cond_t never_happens_cond = PTHREAD_COND_INITIALIZER;
+	struct timeval now_tv;
+	struct timespec timeout;
+
+#define NSEC_PER_SEC (1000 * 1000 * 1000)
+	gettimeofday(&now_tv, NULL);
+
+	timeout.tv_sec   = now_tv.tv_sec;
+	timeout.tv_nsec += 100 * 1000 * 1000; // add 100 ms from now
+	timeout.tv_sec  += timeout.tv_nsec / NSEC_PER_SEC;
+	timeout.tv_nsec  = timeout.tv_nsec % NSEC_PER_SEC;
+
 	while (!exit_flag) {
 		for (UNS8 i = 0; i < pollable_entries_no; i++) {
 			struct pollable_OD_entry *entry = &pollable_entries[i];
@@ -823,6 +1006,8 @@ void *sdo_polling_thread(void *arg) {
 			UNS8 subindex = entry->subindex;
 			UNS32 datatype = entry->datatype;
 			UNS32 transfer_type = entry->transferType;
+
+			int timeout = 300 * 1000; // 300 ms
 
 			result = 0;
 			abort_code = 0;
@@ -839,8 +1024,9 @@ void *sdo_polling_thread(void *arg) {
 			result = getReadResultNetworkDict(&actuators_Data, nodeid, &entry->data[0],
 					&entry->size, &abort_code);
 
-			while ((result == SDO_UPLOAD_IN_PROGRESS) || (result == SDO_BLOCK_UPLOAD_IN_PROGRESS)) {
+			while (((result == SDO_UPLOAD_IN_PROGRESS) || (result == SDO_BLOCK_UPLOAD_IN_PROGRESS)) && (timeout > 0)) {
 				usleep(100);
+				timeout -= 100;
 				result = getReadResultNetworkDict(&actuators_Data, nodeid, &entry->data[0],
 						&entry->size, &abort_code);
 			}
@@ -854,11 +1040,18 @@ void *sdo_polling_thread(void *arg) {
 				CallSDOCallback(index, subindex, &entry->data[0], entry->size);
 			} else {
 				printf("SDO Result ABORT node 0x%hhx index 0x%hx subindex 0x%hhx code: %u\n", nodeid, index, subindex, abort_code);
-				usleep(100 * 1000); // wait a little more for lower levels to handle this
 			}
 			closeSDOtransfer(&actuators_Data, nodeid, SDO_CLIENT);
 		}
-		usleep(100);
+
+		pthread_mutex_lock(&never_happens_mutex);
+		// ждём аккуратно сколько надо
+		pthread_cond_timedwait(&never_happens_cond, &never_happens_mutex, &timeout);
+		pthread_mutex_unlock(&never_happens_mutex);
+
+		timeout.tv_nsec += 100 * 1000 * 1000; // add 100 ms
+		timeout.tv_sec += timeout.tv_nsec / NSEC_PER_SEC;
+		timeout.tv_nsec = timeout.tv_nsec % NSEC_PER_SEC;
 	}
 
 	return NULL;
@@ -883,6 +1076,7 @@ void BUS_CAN_HEARTBEAT_ERROR(CO_Data *data, UNS8 nodeId) {
 		break;
 	case Disconnected:
 		fprintf(stdout, "HEARTBEAT node %hhu state Disconnected\n", nodeId);
+		MODEL.node_status.block_status[nodeId] = 1;
 		break;
 	case Preparing:
 		fprintf(stdout, "HEARTBEAT node %hhu state Preparing/Connecting\n", nodeId);
@@ -892,6 +1086,7 @@ void BUS_CAN_HEARTBEAT_ERROR(CO_Data *data, UNS8 nodeId) {
 		break;
 	case Operational:
 		fprintf(stdout, "HEARTBEAT node %hhu state Operational\n", nodeId);
+		MODEL.node_status.block_status[nodeId] = 0;
 		break;
 	case Pre_operational:
 		fprintf(stdout, "HEARTBEAT node %hhu state Pre_operational\n", nodeId);
@@ -903,7 +1098,6 @@ void BUS_CAN_HEARTBEAT_ERROR(CO_Data *data, UNS8 nodeId) {
 }
 
 void post_sync(CO_Data *data) {
-//	enqueue_PDO(0x19); // send control mode
 	sendOnePDOevent(&actuators_Data, 0x19);
 }
 
@@ -930,8 +1124,9 @@ void CANopen_startup(void) {
 	setState(&actuators_Data, Operational);
 
 	actuators_Data.post_sync = post_sync;
-	//actuators_Data.heartbeatError = BUS_CAN_HEARTBEAT_ERROR;
-	//heartbeatInit(&actuators_Data);
+
+//	actuators_Data.heartbeatError = BUS_CAN_HEARTBEAT_ERROR;
+//	heartbeatInit(&actuators_Data);
 }
 
 void CANopen_shutdown(void) {
@@ -958,49 +1153,73 @@ void init_model() {
 
 
 /* ROS services use this for command mappings */
-void enqueue_PDO(int PDO) {
+int enqueue_PDO(int PDO) {
 	long int my_time = time(NULL);
 	struct tm my_time_s;
 	char buf[255];
+	ssize_t bytes_written = 0;
+
+	int allowed_PDOs[] = {
+			0x19,  // REMOTE CONTROL ALLOWED
+			0x04,  // LEFT_BALLONET_20C
+			0x05,  // LEFT_BALLONET_30C
+			0x06,  // LEFT_BALLONET_40C
+			0x07,  // LEFT_BALLONET_50C
+			0x08,  // RIGHT_BALLONET_20D
+			0x09,  // RIGHT_BALLONET_30D
+			0x0A,  // RIGHT_BALLONET_40D
+			0x0B,  // RIGHT_BALLONET_50D
+			0x14,  // LEFT_MOTOR_312
+			0x15,  // RIGHT_MOTOR_313
+			0x16,  // POWER_DISTRIBUTION_RELAY_305
+			0x17,  // GENERATOR_205
+	};
+
+	bool found = false;
 
 	localtime_r(&my_time, &my_time_s);
 	asctime_r(&my_time_s, buf);
 
-	if (!MODEL.remote_control_enabled || (PDO == 0x19)) {
-		SEND_QUEUE_LOCK();
-		printf("%s QUEUEING PDO 0x%.02x...\n", buf, PDO);
-		send_queue_COB.push(PDO);
-		SEND_QUEUE_UNLOCK();
-	} else {
-		printf("%s NOT QUEUEING PDO 0x%.02x DUE TO REMOTE CONTROL\n", buf, PDO);
-	}
-}
-
-int _retreive_PDO_queue_entry() {
-	int PDO = -1;
-	long int my_time = time(NULL);
-	struct tm my_time_s;
-	char buf[255];
-
-	localtime_r(&my_time, &my_time_s);
-	asctime_r(&my_time_s, buf);
-
-	while (PDO == -1) {
-		SEND_QUEUE_LOCK();
-		if (!send_queue_COB.empty()) {
-			PDO = send_queue_COB.front();
-			printf("%s SENDING PDO 0x%.02x...", buf, PDO);
-			send_queue_COB.pop();
-			SEND_QUEUE_UNLOCK();
-		} else {
-			SEND_QUEUE_UNLOCK	();
-			usleep(100);
+	for (int i = 0; i < sizeof(allowed_PDOs) / sizeof(allowed_PDOs[0]); i++) {
+		if (allowed_PDOs[i] == PDO) {
+			found = true;
+			break;
 		}
 	}
 
+	if (!MODEL.remote_control_enabled || found) {
+		printf("%s QUEUEING PDO 0x%.02x...\n", buf, PDO);
+		buf[0] = (UNS8) PDO;
 
+		bytes_written = write(pipe_pdo_write, buf, 1);
 
-	return PDO;
+	} else {
+		printf("%s NOT QUEUEING PDO 0x%.02x DUE TO REMOTE CONTROL\n", buf, PDO);
+	}
+
+	if (bytes_written == 0)
+		return 1;
+	else
+		return 0;
+}
+
+UNS8 _retreive_PDO_queue_entry() {
+	UNS8 PDO = 255;
+	long int my_time = time(NULL);
+	struct tm my_time_s;
+	char buf[255];
+	int result = 0;
+
+	localtime_r(&my_time, &my_time_s);
+	asctime_r(&my_time_s, buf);
+
+	result = read(pipe_pdo_read, &PDO, 1);
+
+	if (result == 1) {
+		printf("%s SENDING PDO 0x%.02x...", buf, PDO);
+		return PDO;
+	} else
+		return 255;
 }
 
 void start_matlab_thread(int argc, char **argv) {
@@ -1052,15 +1271,14 @@ void bye(int signum) {
 #undef DEBUG
 int main(int argc, char **argv) {
 	int result = 0;
-
-
+	int pipe_fds[2];
 
 	printf("starting actuators\n");
 	printf("%d SDO callbacks\n", callback_no);
 	for (int i = 0; i < callback_no; i++) {
 		printf("%d SDO callback index 0x%hx subindex 0x%hhx address %p\n", i, callbacks[i].index, callbacks[i].subindex, callbacks[i].callback_fn);
 
-		sem_init(&callbacks[i].semaphore, 0, 0);
+		callbacks[i].semaphore = 0;
 	}
 
 	printf("%d PDO callbacks\n", pdo_callback_no);
@@ -1068,6 +1286,14 @@ int main(int argc, char **argv) {
 		RegisterSetODentryCallBack(&actuators_Data, pdo_callbacks[i].index, 0, pdo_callbacks[i].callback_fn);
 	}
 
+	result = pipe2(pipe_fds, O_NONBLOCK);
+	if (result) {
+		perror("pipe");
+		exit(1);
+	}
+
+	pipe_pdo_read = pipe_fds[0];
+	pipe_pdo_write = pipe_fds[1];
 
 	signal(SIGINT, bye);
 
@@ -1099,17 +1325,12 @@ int main(int argc, char **argv) {
 		UNS32 size = 0;
 		UNS32 abort_code = 0;
 
-		/* TODO: drain send queue when appropriate -- maybe at start of SYNC period */
-
-		SEND_QUEUE_LOCK();
-		if (!send_queue_COB.empty()) {
-			SEND_QUEUE_UNLOCK();
-			int PDO_number = _retreive_PDO_queue_entry();
+		UNS8 PDO_number = _retreive_PDO_queue_entry();
+		if (PDO_number != 255) {
 			int result = sendOnePDOevent(&actuators_Data, PDO_number);
 			printf("%d!\n", result);
-		} else {
-			SEND_QUEUE_UNLOCK();
 		}
+		usleep(50);
 	}
 
     fprintf(stderr, "ACTUATORS EXITING\n");

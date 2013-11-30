@@ -57,7 +57,7 @@ struct Indigo_OD_Callback {
 
 	void (*callback_fn)(UNS8 *data, UNS32 size);
 
-	sem_t semaphore;
+	volatile int semaphore;
 };
 extern struct Indigo_OD_Callback callbacks[200];
 
@@ -72,18 +72,7 @@ struct PDO_callback {
 
 void my_sleep(int seconds);
 
-extern std::queue<int> send_queue_COB;
-extern pthread_mutex_t send_queue_COB_lock;
-void enqueue_PDO(int PDO);
-#define SEND_QUEUE_LOCK() do {\
-	pthread_mutex_lock(&send_queue_COB_lock);\
-} while(0)
-
-
-#define SEND_QUEUE_UNLOCK() do {\
-	pthread_mutex_unlock(&send_queue_COB_lock);\
-} while(0)
-
+int enqueue_PDO(int PDO);
 
 #define SDO_USE_BLOCK_MODE 1
 #define SDO_USE_EXPEDITED_MODE 0
