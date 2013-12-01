@@ -1,0 +1,53 @@
+\BOOKMARK [1][-]{section.0.1}{Introduction}{}
+\BOOKMARK [2][-]{subsection.0.1.1}{The CanFestival project}{section.0.1}
+\BOOKMARK [2][-]{subsection.0.1.2}{What is CANopen }{section.0.1}
+\BOOKMARK [1][-]{section.0.2}{CanFestival Features}{}
+\BOOKMARK [2][-]{subsection.0.2.1}{Tools }{section.0.2}
+\BOOKMARK [2][-]{subsection.0.2.2}{Multi-Platform}{section.0.2}
+\BOOKMARK [2][-]{subsection.0.2.3}{CANopen standard conformance}{section.0.2}
+\BOOKMARK [1][-]{section.0.3}{How to start}{}
+\BOOKMARK [2][-]{subsection.0.3.1}{Host requirements}{section.0.3}
+\BOOKMARK [1][-]{section.0.4}{Understanding Canfestival}{}
+\BOOKMARK [2][-]{subsection.0.4.1}{CanFestival Project tree layout}{section.0.4}
+\BOOKMARK [2][-]{subsection.0.4.2}{Implement CanFestival in your application}{section.0.4}
+\BOOKMARK [2][-]{subsection.0.4.3}{CanFestival CAN interfaces}{section.0.4}
+\BOOKMARK [2][-]{subsection.0.4.4}{CanFestival event scheduling}{section.0.4}
+\BOOKMARK [1][-]{section.0.5}{Linux Target}{}
+\BOOKMARK [2][-]{subsection.0.5.1}{Linux Compilation and installation}{section.0.5}
+\BOOKMARK [2][-]{subsection.0.5.2}{Testing your CanFestival installation}{section.0.5}
+\BOOKMARK [1][-]{section.0.6}{Windows Targets}{}
+\BOOKMARK [2][-]{subsection.0.6.1}{Object Dictionary Editor GUI installation.}{section.0.6}
+\BOOKMARK [2][-]{subsection.0.6.2}{CYGWIN}{section.0.6}
+\BOOKMARK [2][-]{subsection.0.6.3}{Visual Studio C++}{section.0.6}
+\BOOKMARK [2][-]{subsection.0.6.4}{MSYS}{section.0.6}
+\BOOKMARK [1][-]{section.0.7}{Motorola HCS12}{}
+\BOOKMARK [2][-]{subsection.0.7.1}{Running a HCS12 node}{section.0.7}
+\BOOKMARK [1][-]{section.0.8}{Example and test program:}{}
+\BOOKMARK [2][-]{subsection.0.8.1}{CANOpenShell}{section.0.8}
+\BOOKMARK [2][-]{subsection.0.8.2}{TestMasterSlave}{section.0.8}
+\BOOKMARK [2][-]{subsection.0.8.3}{gene\137SYNC\137HCS12 :}{section.0.8}
+\BOOKMARK [2][-]{subsection.0.8.4}{kerneltest :}{section.0.8}
+\BOOKMARK [2][-]{subsection.0.8.5}{TestMasterMicroMod }{section.0.8}
+\BOOKMARK [2][-]{subsection.0.8.6}{TestMasterSlaveLSS}{section.0.8}
+\BOOKMARK [2][-]{subsection.0.8.7}{FastScan}{section.0.8}
+\BOOKMARK [1][-]{section.0.9}{Developing a new node}{}
+\BOOKMARK [2][-]{subsection.0.9.1}{Using Dictionary Editor GUI}{section.0.9}
+\BOOKMARK [2][-]{subsection.0.9.2}{Generating the object Dictionary}{section.0.9}
+\BOOKMARK [1][-]{section.0.10}{FAQ}{}
+\BOOKMARK [2][-]{subsection.0.10.1}{General}{section.0.10}
+\BOOKMARK [2][-]{subsection.0.10.2}{LINUX}{section.0.10}
+\BOOKMARK [2][-]{subsection.0.10.3}{Win32}{section.0.10}
+\BOOKMARK [2][-]{subsection.0.10.4}{HCS12}{section.0.10}
+\BOOKMARK [1][-]{section.0.11}{Documentation resources}{}
+\BOOKMARK [2][-]{subsection.0.11.1}{CIA : Can in Automation }{section.0.11}
+\BOOKMARK [2][-]{subsection.0.11.2}{Resources and training in CANopen }{section.0.11}
+\BOOKMARK [2][-]{subsection.0.11.3}{Elektronikladen HCS12 T -board }{section.0.11}
+\BOOKMARK [2][-]{subsection.0.11.4}{Gnu gcc compiler for HC12 }{section.0.11}
+\BOOKMARK [2][-]{subsection.0.11.5}{Motorola documentation on HC12 }{section.0.11}
+\BOOKMARK [2][-]{subsection.0.11.6}{Lauterbach debugger for HC12 }{section.0.11}
+\BOOKMARK [2][-]{subsection.0.11.7}{Python language }{section.0.11}
+\BOOKMARK [1][-]{section.0.12}{About the project}{}
+\BOOKMARK [2][-]{subsection.0.12.1}{Contributors }{section.0.12}
+\BOOKMARK [2][-]{subsection.0.12.2}{Getting support}{section.0.12}
+\BOOKMARK [2][-]{subsection.0.12.3}{Contributing}{section.0.12}
+\BOOKMARK [2][-]{subsection.0.12.4}{License}{section.0.12}
