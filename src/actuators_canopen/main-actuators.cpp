@@ -2,6 +2,8 @@
 #define _GNU_SOURCE
 #endif
 
+#include <getopt.h>
+
 #include <stdio.h>
 #include <canfestival.h>
 #include <data.h>
@@ -29,7 +31,7 @@
 
 #include <assert.h>
 
-static char busname[] = "0";
+static char busname[] = "1";
 static char baudrate[] = "500K";
 
 s_BOARD Board = { "", "" };
@@ -43,6 +45,71 @@ sig_atomic_t exit_flag = 0;
 
 int pipe_pdo_read = 0;
 int pipe_pdo_write = 0;
+
+enum actuators_mode_t {
+	ACTUATORS_MAIN = 1,
+	ACTUATORS_FAILSAFE = 2,
+	ACTUATORS_FAILSAFE_EMERGENCY = 3,
+};
+
+int actuators_mode = ACTUATORS_MAIN;
+volatile int GLOBAL_PDO_ENABLED = 1;
+volatile int GLOBAL_SDO_ENABLED = 1;
+
+struct option options[] = {
+        {"type"   , 1, NULL, static_cast<int>('t')},
+};
+
+int callback_no = 0;
+
+struct actuators_model MODEL;
+extern pthread_mutex_t MODEL_lock;
+
+struct Indigo_OD_Callback callbacks[200];
+
+int pdo_callback_no = 0;
+
+struct PDO_callback pdo_callbacks[512];
+
+void set_actuators_mode(int _actuators_mode) {
+	actuators_mode = _actuators_mode;
+
+	switch (actuators_mode) {
+	case ACTUATORS_FAILSAFE_EMERGENCY:
+	case ACTUATORS_MAIN:
+		GLOBAL_PDO_ENABLED = 1;
+		GLOBAL_PDO_ENABLED = 1;
+		break;
+	case ACTUATORS_FAILSAFE:
+		GLOBAL_PDO_ENABLED = 0;
+		GLOBAL_SDO_ENABLED = 0;
+		break;
+	default:
+		exit(1);
+	}
+}
+
+static void parse_options(int argc, char **argv) {
+	int opt = 0;
+	while ((opt = getopt_long(argc, argv, "t:", options, NULL)) != -1) {
+		switch (opt) {
+		case 't':
+			if (!strcmp(optarg, "main")) {
+				set_actuators_mode(ACTUATORS_MAIN);
+			} else if (!strcmp(optarg, "failsafe")) {
+				set_actuators_mode(ACTUATORS_FAILSAFE);
+			} else {
+				fprintf(stderr, "-t can be main or failsafe only\n");
+				exit(1);
+			}
+			break;
+		case '?':
+			break;
+		default:
+			break;
+		}
+	}
+}
 
 /**************************** INIT ********************************************/
 void Init(CO_Data *d, UNS32 id) {
@@ -63,13 +130,6 @@ void Exit(CO_Data* d, UNS32 nodeid) {
 		setState(&actuators_Data, Stopped);
 	}
 }
-
-int callback_no = 0;
-
-struct actuators_model MODEL;
-extern pthread_mutex_t MODEL_lock;
-
-struct Indigo_OD_Callback callbacks[200];
 
 #define RECEIVE(VALUE, NAME, SCALE) do {\
 			MODEL.NAME = VALUE / SCALE; \
@@ -111,10 +171,7 @@ struct Indigo_OD_Callback callbacks[200];
 	fprintf(stdout, "\n");\
 } while (0)
 
-int pdo_callback_no = 0;
-
-struct PDO_callback pdo_callbacks[512];
-
+extern int left_engine_startstop_command_sent;
 PDO_CALLBACK(0x5100, 0x188, left_motor_startstop_response) {
         DECLARE_PDO_CALLBACK_VARS;
 
@@ -125,23 +182,26 @@ PDO_CALLBACK(0x5100, 0x188, left_motor_startstop_response) {
 
         switch (Subindex) {
         case 0x0:
-                printf("PARSED PDO left_motor callback result 0x188: ");
-                print_hex((char *) data, size);
-                printf("\n");
+        	if (left_engine_startstop_command_sent) {
+        		printf("PARSED PDO left_motor callback result 0x188: ");
+        		print_hex((char *) data, size);
+        		printf("\n");
 
-                // confirmation
-                if (data[0] == 0xa0) {
-                	new_data[0] = 0xb0;
-                } else if (data[0] == 0x55) {
-                	new_data[0] = 0x66;
-                }
-                send_size = 8;
-                writeLocalDict(&actuators_Data, 0x5010, 0x0, &new_data[0], &send_size, 0);
-                enqueue_PDO(0x10);
-                break;
+        		// confirmation
+        		if (data[0] == 0xa0) {
+        			new_data[0] = 0xb0;
+        		} else if (data[0] == 0x55) {
+        			new_data[0] = 0x66;
+        		}
+        		send_size = 8;
+        		writeLocalDict(&actuators_Data, 0x5010, 0x0, &new_data[0], &send_size, 0);
+        		enqueue_PDO(0x10);
+        		left_engine_startstop_command_sent = 0;
+        	}
+        	break;
         default:
-                printf("unknown PDO subindex %.02hhX\n", Subindex);
-                break;
+        	printf("unknown PDO subindex %.02hhX\n", Subindex);
+        	break;
         }
 
         return OD_SUCCESSFUL;
@@ -174,10 +234,10 @@ PDO_CALLBACK(0x5101, 0x189, right_motor_startstop_response) {
         		enqueue_PDO(0x11);
         		right_engine_startstop_command_sent = 0;
         	}
-                break;
+        	break;
         default:
-                printf("unknown PDO subindex %.02hhX\n", Subindex);
-                break;
+        	printf("unknown PDO subindex %.02hhX\n", Subindex);
+        	break;
         }
 
         return OD_SUCCESSFUL;
@@ -272,6 +332,8 @@ PDO_CALLBACK(0x5111, 0x806, emcy_control_surface) {
 
 	DECLARE_EMCY(control_surface, 806);
 
+	readLocalDict(d, 0x5111, 0x0, data, &size, &dataType, 0);
+
 	RECEIVE_PRINT(emcy->left_horizontal_control_surface_1_status, left_horizontal_control_surface_1_status, 1, "%hhu");
 	RECEIVE_PRINT(emcy->left_horizontal_control_surface_2_status, left_horizontal_control_surface_2_status, 1, "%hhu");
 
@@ -292,6 +354,8 @@ PDO_CALLBACK(0x5112, 0x807, emcy_tail_electromotor) {
 
 	DECLARE_EMCY(tail_electromotor, 807);
 
+	readLocalDict(d, 0x5112, 0x0, data, &size, &dataType, 0);
+
 	RECEIVE_PRINT(emcy->left_electromotor_servo_status, left_electromotor_servo_status, 1, "%hhu");
 	RECEIVE_PRINT(emcy->right_electromotor_servo_status, right_electromotor_servo_status, 1, "%hhu");
 
@@ -305,6 +369,8 @@ PDO_CALLBACK(0x5113, 0x808, emcy_left_main_engine) {
 	DECLARE_PDO_CALLBACK_VARS;
 
 	DECLARE_EMCY(left_main_engine, 808);
+
+	readLocalDict(d, 0x5113, 0x0, data, &size, &dataType, 0);
 
 	RECEIVE_PRINT(emcy->left_main_engine_failure_code, left_main_engine_failure_code, 1, "%hhu");
 	RECEIVE_PRINT(emcy->left_main_engine_failure_code_2, left_main_engine_failure_code_2, 1, "%hhu");
@@ -327,6 +393,8 @@ PDO_CALLBACK(0x5114, 0x809, emcy_right_main_engine) {
 
 	DECLARE_EMCY(right_main_engine, 809);
 
+	readLocalDict(d, 0x5114, 0x0, data, &size, &dataType, 0);
+
 	RECEIVE_PRINT(emcy->right_main_engine_failure_code, right_main_engine_failure_code, 1, "%hhu");
 	RECEIVE_PRINT(emcy->right_main_engine_failure_code_2, right_main_engine_failure_code_2, 1, "%hhu");
 	RECEIVE_PRINT(emcy->right_main_engine_aux_fuel_tank_sensor_status, right_main_engine_aux_fuel_tank_sensor_status, 1, "%hhu");
@@ -348,6 +416,8 @@ PDO_CALLBACK(0x5115, 0x80a, emcy_left_main_engine_servo) {
 
 	DECLARE_EMCY(left_main_engine_servo, 80A);
 
+	readLocalDict(d, 0x5115, 0x0, data, &size, &dataType, 0);
+
 	RECEIVE_PRINT(emcy->left_main_engine_servo_communication_link_status, left_main_engine_servo_communication_link_status, 1, "%hhu");
 	RECEIVE_PRINT(emcy->left_main_engine_servo_dc_current_status, left_main_engine_servo_dc_current_status, 1, "%hhu");
 	RECEIVE_PRINT(emcy->left_main_engine_servo_dc_voltage_status, left_main_engine_servo_dc_voltage_status, 1, "%hhu");
@@ -363,6 +433,8 @@ PDO_CALLBACK(0x5116, 0x80b, emcy_right_main_engine_servo) {
 	DECLARE_PDO_CALLBACK_VARS;
 
 	DECLARE_EMCY(right_main_engine_servo, 80B);
+
+	readLocalDict(d, 0x5116, 0x0, data, &size, &dataType, 0);
 
 	RECEIVE_PRINT(emcy->right_main_engine_servo_communication_link_status, right_main_engine_servo_communication_link_status, 1, "%hhu");
 	RECEIVE_PRINT(emcy->right_main_engine_servo_dc_current_status, right_main_engine_servo_dc_current_status, 1, "%hhu");
@@ -380,6 +452,8 @@ PDO_CALLBACK(0x5117, 0x80c, emcy_left_ballonet) {
 
 	DECLARE_EMCY(left_ballonet, 80C);
 
+	readLocalDict(d, 0x5117, 0x0, data, &size, &dataType, 0);
+
 	RECEIVE_PRINT(emcy->left_ballonet_failure_code, left_ballonet_failure_code, 1, "%hhu");
 	RECEIVE_PRINT(emcy->left_ballonet_fan_possible, left_ballonet_fan_possible, 1, "%hhu");
 	RECEIVE_PRINT(emcy->left_ballonet_valve_close_possible, left_ballonet_valve_close_possible, 1, "%hhu");
@@ -392,6 +466,8 @@ PDO_CALLBACK(0x5118, 0x80d, emcy_right_ballonet) {
 	DECLARE_PDO_CALLBACK_VARS;
 
 	DECLARE_EMCY(right_ballonet, 80D);
+
+	readLocalDict(d, 0x5118, 0x0, data, &size, &dataType, 0);
 
 	RECEIVE_PRINT(emcy->right_ballonet_failure_code, right_ballonet_failure_code, 1, "%hhu");
 	RECEIVE_PRINT(emcy->right_ballonet_fan_possible, right_ballonet_fan_possible, 1, "%hhu");
@@ -819,9 +895,6 @@ CALLBACK(0x400c, 0x10) {
 };
 
 CALLBACK(0x400c, 0x20) {
-	// остальное не читается, только задаётся
-	// 0x200, 0x300, 0x400, 0x500 + 12
-
 	DECLARE_M(400c, 20);
 
 	RECEIVE_PRINT(M->left_ballonet_pressure_1, left_ballonet_pressure_1, 1, "%hu Pa");
@@ -839,14 +912,6 @@ CALLBACK(0x400d, 0x10) {
 }
 
 CALLBACK(0x400d, 0x20) {
-	// остальное не читается, только задаётся
-	// 0x200, 0x300, 0x400, 0x500 + 13
-	// right_ballonet_state.ballonet_fan_1
-	// right_ballonet_state.ballonet_fan_2
-	// right_ballonet_state.ballonet_valve_1
-
-	// right_ballonet_differential_pressure_1
-	// right_ballonet_differential_pressure_2
 	DECLARE_M(400d, 20);
 
 	RECEIVE_PRINT(M->right_ballonet_pressure_1, right_ballonet_pressure_1, 1, "%hu Pa");
@@ -979,22 +1044,28 @@ void *sdo_polling_thread(void *arg) {
 
 	UNS8 pollable_entries_no = sizeof(pollable_entries) / sizeof(pollable_entries[0]);
 
+	// for 10 hz polling
 	pthread_mutex_t never_happens_mutex = PTHREAD_MUTEX_INITIALIZER;
 	pthread_cond_t never_happens_cond = PTHREAD_COND_INITIALIZER;
 	struct timeval now_tv;
 	struct timespec timeout;
 
 #define NSEC_PER_SEC (1000 * 1000 * 1000)
+#define SDO_HZ 10
+	
 	gettimeofday(&now_tv, NULL);
 
 	timeout.tv_sec   = now_tv.tv_sec;
-	timeout.tv_nsec += 100 * 1000 * 1000; // add 100 ms from now
+	timeout.tv_nsec += NSEC_PER_SEC / SDO_HZ; // add enough ms from now
 	timeout.tv_sec  += timeout.tv_nsec / NSEC_PER_SEC;
 	timeout.tv_nsec  = timeout.tv_nsec % NSEC_PER_SEC;
 
 	while (!exit_flag) {
 		for (UNS8 i = 0; i < pollable_entries_no; i++) {
 			struct pollable_OD_entry *entry = &pollable_entries[i];
+
+			if (!GLOBAL_SDO_ENABLED)
+				continue;
 
 			if (entry->nodeId != nodeid)
 				continue;
@@ -1035,7 +1106,7 @@ void *sdo_polling_thread(void *arg) {
 
 			if (result == SDO_FINISHED) {
 				printf("SDO Result node 0x%hhx index 0x%hx subindex 0x%hhx: %d: ", nodeid, index, subindex, result);
-				print_hex((char *) &entry->data[0], 8);
+				print_hex((char *) &entry->data[0], entry->size);
 				printf("\n");
 				CallSDOCallback(index, subindex, &entry->data[0], entry->size);
 			} else {
@@ -1049,7 +1120,7 @@ void *sdo_polling_thread(void *arg) {
 		pthread_cond_timedwait(&never_happens_cond, &never_happens_mutex, &timeout);
 		pthread_mutex_unlock(&never_happens_mutex);
 
-		timeout.tv_nsec += 100 * 1000 * 1000; // add 100 ms
+		timeout.tv_nsec += NSEC_PER_SEC / SDO_HZ; // add enough ms
 		timeout.tv_sec += timeout.tv_nsec / NSEC_PER_SEC;
 		timeout.tv_nsec = timeout.tv_nsec % NSEC_PER_SEC;
 	}
@@ -1063,20 +1134,26 @@ pthread_mutex_t send_queue_COB_lock;
 pthread_mutex_t MODEL_lock;
 pthread_mutex_t REPORTED_DATA_lock;
 
-void BUS_CAN_HEARTBEAT_ERROR(CO_Data *data, UNS8 nodeId) {
-	e_nodeState nodeState = getNodeState(data, nodeId);
+void post_SlaveStateChange(CO_Data *data, UNS8 nodeId, e_nodeState newNodeState) {
+	if (nodeId > sizeof(MODEL.node_status.block_status) / sizeof(MODEL.node_status.block_status[0]))
+		return;
 
-	fprintf(stdout, "===================================\n");
-	fprintf(stdout, "HEARTBEAT ERROR for NODE %hhu!!!!!!\n", nodeId);
-	fprintf(stdout, "===================================\n");
-
-	switch (nodeState) {
+	switch (newNodeState) {
 	case Initialisation:
 		fprintf(stdout, "HEARTBEAT node %hhu state Initialisation\n", nodeId);
 		break;
 	case Disconnected:
 		fprintf(stdout, "HEARTBEAT node %hhu state Disconnected\n", nodeId);
 		MODEL.node_status.block_status[nodeId] = 1;
+
+		if (nodeId == 1 && actuators_mode == ACTUATORS_FAILSAFE) {
+			// 1 раз может быть не персил
+			// с другой стороны, одноразовый таймер уже сработал и всё
+			// с третьей стороны, если на шине что-то ещё есть, она появится
+			// с четвёртой стороны, таймер 10 секунд в отличие от остальных, а 10 секунд уже надо реагировать
+
+			set_actuators_mode(ACTUATORS_FAILSAFE_EMERGENCY);
+		}
 		break;
 	case Preparing:
 		fprintf(stdout, "HEARTBEAT node %hhu state Preparing/Connecting\n", nodeId);
@@ -1095,10 +1172,19 @@ void BUS_CAN_HEARTBEAT_ERROR(CO_Data *data, UNS8 nodeId) {
 		fprintf(stdout, "HEARTBEAT node %hhu state Unknown_state\n", nodeId);
 		break;
 	}
+
+}
+
+void BUS_CAN_HEARTBEAT_ERROR(CO_Data *data, UNS8 nodeId) {
+	e_nodeState nodeState = getNodeState(data, nodeId);
+
+	post_SlaveStateChange(data, nodeId, nodeState);
 }
 
 void post_sync(CO_Data *data) {
-	sendOnePDOevent(&actuators_Data, 0x19);
+	if (GLOBAL_PDO_ENABLED) {
+		sendOnePDOevent(data, 0x19);
+	}
 }
 
 void CANopen_startup(void) {
@@ -1107,7 +1193,17 @@ void CANopen_startup(void) {
 
 	LoadCanDriver("/usr/local/lib/libcanfestival_can_kvaser.so");
 
-	setNodeId(&actuators_Data, 0x1);
+	switch (actuators_mode) {
+	case ACTUATORS_FAILSAFE:
+		fprintf(stderr, "actuators FAILSAFE mode\n");
+		setNodeId(&actuators_Data, 0x2);
+		break;
+	case ACTUATORS_MAIN:
+	default:
+		fprintf(stderr, "actuators MAIN mode\n");
+		setNodeId(&actuators_Data, 0x1);
+		break;
+	}
 
 	/* Init stack timer */
 	TimerInit();
@@ -1125,8 +1221,13 @@ void CANopen_startup(void) {
 
 	actuators_Data.post_sync = post_sync;
 
-//	actuators_Data.heartbeatError = BUS_CAN_HEARTBEAT_ERROR;
-//	heartbeatInit(&actuators_Data);
+	// this part might still cause crashes
+#if 0
+	actuators_Data.heartbeatError = BUS_CAN_HEARTBEAT_ERROR;
+	actuators_Data.post_SlaveStateChange = post_SlaveStateChange;
+	heartbeatInit(&actuators_Data);
+	lifeGuardInit(&actuators_Data);
+#endif
 }
 
 void CANopen_shutdown(void) {
@@ -1142,6 +1243,7 @@ void CANopen_shutdown(void) {
 
 void init_model() {
 	memset(&MODEL, 0, sizeof(MODEL));
+	MODEL.remote_control_enabled = 1; // enable remote control by default
 
 	pthread_mutexattr_t attr;
 	pthread_mutexattr_init(&attr);
@@ -1177,6 +1279,9 @@ int enqueue_PDO(int PDO) {
 
 	bool found = false;
 
+	if (!GLOBAL_PDO_ENABLED)
+		return 1;
+
 	localtime_r(&my_time, &my_time_s);
 	asctime_r(&my_time_s, buf);
 
@@ -1203,8 +1308,9 @@ int enqueue_PDO(int PDO) {
 		return 0;
 }
 
+#define NO_PDO_IN_QUEUE 255
 UNS8 _retreive_PDO_queue_entry() {
-	UNS8 PDO = 255;
+	UNS8 PDO = NO_PDO_IN_QUEUE;
 	long int my_time = time(NULL);
 	struct tm my_time_s;
 	char buf[255];
@@ -1219,7 +1325,7 @@ UNS8 _retreive_PDO_queue_entry() {
 		printf("%s SENDING PDO 0x%.02x...", buf, PDO);
 		return PDO;
 	} else
-		return 255;
+		return NO_PDO_IN_QUEUE;
 }
 
 void start_matlab_thread(int argc, char **argv) {
@@ -1268,15 +1374,17 @@ void bye(int signum) {
 	exit_flag = 1;
 }
 
-#undef DEBUG
 int main(int argc, char **argv) {
 	int result = 0;
 	int pipe_fds[2];
 
+	parse_options(argc, argv);
+
 	printf("starting actuators\n");
 	printf("%d SDO callbacks\n", callback_no);
 	for (int i = 0; i < callback_no; i++) {
-		printf("%d SDO callback index 0x%hx subindex 0x%hhx address %p\n", i, callbacks[i].index, callbacks[i].subindex, callbacks[i].callback_fn);
+		printf("%d SDO callback index 0x%hx subindex 0x%hhx address %p\n",
+				i, callbacks[i].index, callbacks[i].subindex, callbacks[i].callback_fn);
 
 		callbacks[i].semaphore = 0;
 	}
@@ -1321,12 +1429,8 @@ int main(int argc, char **argv) {
     }
 
 	while (!exit_flag) {
-		UNS8 data[1024];
-		UNS32 size = 0;
-		UNS32 abort_code = 0;
-
 		UNS8 PDO_number = _retreive_PDO_queue_entry();
-		if (PDO_number != 255) {
+		if (PDO_number != NO_PDO_IN_QUEUE) {
 			int result = sendOnePDOevent(&actuators_Data, PDO_number);
 			printf("%d!\n", result);
 		}

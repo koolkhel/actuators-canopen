@@ -1,0 +1,36 @@
+byte ENGINES_CONTROL_MODE_RATE = 0
+byte ENGINES_CONTROL_MODE_THTROTTLE = 1
+
+byte left_engine_control_regime
+# Setting the rotational speed of the left main engine
+float32 left_engine_control
+# Setting the angle of rotation of the left main engine
+float32 left_engine_servo_angle
+# Set point fixation of the left rotator flight engine
+bool left_engine_servo_fix
+
+byte right_engine_control_regime
+# Setting the rotational speed of the right main engine
+float32 right_engine_control
+# Setting the rotation angle of the right main engine
+float32 right_engine_servo_angle
+# Setting the right fixing rotator flight engine
+bool right_engine_servo_fix
+
+# Setting the rotational speed of the electric motor
+float32 left_electromotor_rate
+# Setting the angles of rotation of the electric motor
+float32 left_electromotors_servo_anglex
+float32 left_electromotors_servo_angley
+# Setting rotary fixation devices, the electric motor
+bool left_electromotors_servo_fix
+
+# Setting the rotational speed of the electric motor
+float32 right_electromotor_rate
+# Setting the angles of rotation of the electric motor
+float32 right_electromotors_servo_anglex
+float32 right_electromotors_servo_angley
+# Setting rotary fixation devices, the electric motor
+bool right_electromotors_servo_fix
+---
+uint8 result

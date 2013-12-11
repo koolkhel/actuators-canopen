@@ -44,14 +44,16 @@ extern INTEGER8 RIGHT_MOTOR_CALLBACK_189;		/* Mapped at index 0x5101, subindex 0
 extern INTEGER8 HELIUM_VALVE_CALLBACK_182;		/* Mapped at index 0x5102, subindex 0x00*/
 extern INTEGER8 REMOTE_CONTROL_SWITCH_204;		/* Mapped at index 0x5103, subindex 0x00*/
 extern UNS8 EMCY_LOAD_804;		/* Mapped at index 0x5110, subindex 0x00*/
-extern UNS8 EMCY_CONTROL_SURFACE_806;		/* Mapped at index 0x5111, subindex 0x00*/
-extern UNS8 EMCY_TAIL_ELECTROMOTOR_807;		/* Mapped at index 0x5112, subindex 0x00*/
-extern UNS8 EMCY_LEFT_MAIN_ENGINE_808;		/* Mapped at index 0x5113, subindex 0x00*/
-extern UNS8 EMCY_RIGHT_MAIN_ENGINE_809;		/* Mapped at index 0x5114, subindex 0x00*/
+extern INTEGER64 EMCY_CONTROL_SURFACE_806;		/* Mapped at index 0x5111, subindex 0x00*/
+extern INTEGER32 EMCY_TAIL_ELECTROMOTOR_807;		/* Mapped at index 0x5112, subindex 0x00*/
+extern INTEGER16 EMCY_LEFT_MAIN_ENGINE_808;		/* Mapped at index 0x5113, subindex 0x00*/
+extern INTEGER16 EMCY_RIGHT_MAIN_ENGINE_809;		/* Mapped at index 0x5114, subindex 0x00*/
 extern UNS8 EMCY_LEFT_MAIN_ENGINE_SERVO_80A;		/* Mapped at index 0x5115, subindex 0x00*/
 extern UNS8 EMCY_RIGHT_MAIN_ENGINE_SERVO_80B;		/* Mapped at index 0x5116, subindex 0x00*/
 extern UNS8 EMCY_LEFT_BALLONET_80C;		/* Mapped at index 0x5117, subindex 0x00*/
 extern UNS8 EMCY_RIGHT_BALLONET_80D;		/* Mapped at index 0x5118, subindex 0x00*/
 extern UNS8 EMCY_HELIUM_VALVE_80E;		/* Mapped at index 0x5119, subindex 0x00*/
+extern UNS8 FAILSAFE_MODE_202;		/* Mapped at index 0x5180, subindex 0x00*/
+extern UNS8 FAILSAFE_ABORT_301;		/* Mapped at index 0x5181, subindex 0x00*/
 
 #endif // ACTUATORS_H

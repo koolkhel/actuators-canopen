@@ -31,22 +31,24 @@ INTEGER64 RIGHT_MOTOR_313 = 0x0;		/* Mapped at index 0x5015, subindex 0x00 */
 INTEGER64 POWER_DISTRIBUTION_RELAY_305 = 0x0;		/* Mapped at index 0x5016, subindex 0x00 */
 INTEGER64 GENERATOR_205 = 0x0;		/* Mapped at index 0x5017, subindex 0x00 */
 INTEGER64 HELIUM_VALVE_20e = 0x0;		/* Mapped at index 0x5018, subindex 0x00 */
-INTEGER64 REMOTE_CONTROL_ALLOW_201 = 0x55;		/* Mapped at index 0x5019, subindex 0x00 */
+INTEGER64 REMOTE_CONTROL_ALLOW_201 = 0xAA;		/* Mapped at index 0x5019, subindex 0x00 */
 INTEGER64 CONTROL_SURFACE_206 = 0x0;		/* Mapped at index 0x501A, subindex 0x00 */
 INTEGER8 LEFT_MOTOR_CALLBACK_188 = 0x0;		/* Mapped at index 0x5100, subindex 0x00 */
 INTEGER8 RIGHT_MOTOR_CALLBACK_189 = 0x0;		/* Mapped at index 0x5101, subindex 0x00 */
 INTEGER8 HELIUM_VALVE_CALLBACK_182 = 0x0;		/* Mapped at index 0x5102, subindex 0x00 */
 INTEGER8 REMOTE_CONTROL_SWITCH_204 = 0x0;		/* Mapped at index 0x5103, subindex 0x00 */
 UNS8 EMCY_LOAD_804 = 0x0;		/* Mapped at index 0x5110, subindex 0x00 */
-UNS8 EMCY_CONTROL_SURFACE_806 = 0x0;		/* Mapped at index 0x5111, subindex 0x00 */
-UNS8 EMCY_TAIL_ELECTROMOTOR_807 = 0x0;		/* Mapped at index 0x5112, subindex 0x00 */
-UNS8 EMCY_LEFT_MAIN_ENGINE_808 = 0x0;		/* Mapped at index 0x5113, subindex 0x00 */
-UNS8 EMCY_RIGHT_MAIN_ENGINE_809 = 0x0;		/* Mapped at index 0x5114, subindex 0x00 */
+INTEGER64 EMCY_CONTROL_SURFACE_806 = 0x0;		/* Mapped at index 0x5111, subindex 0x00 */
+INTEGER32 EMCY_TAIL_ELECTROMOTOR_807 = 0x0;		/* Mapped at index 0x5112, subindex 0x00 */
+INTEGER16 EMCY_LEFT_MAIN_ENGINE_808 = 0x0;		/* Mapped at index 0x5113, subindex 0x00 */
+INTEGER16 EMCY_RIGHT_MAIN_ENGINE_809 = 0x0;		/* Mapped at index 0x5114, subindex 0x00 */
 UNS8 EMCY_LEFT_MAIN_ENGINE_SERVO_80A = 0x0;		/* Mapped at index 0x5115, subindex 0x00 */
 UNS8 EMCY_RIGHT_MAIN_ENGINE_SERVO_80B = 0x0;		/* Mapped at index 0x5116, subindex 0x00 */
 UNS8 EMCY_LEFT_BALLONET_80C = 0x0;		/* Mapped at index 0x5117, subindex 0x00 */
 UNS8 EMCY_RIGHT_BALLONET_80D = 0x0;		/* Mapped at index 0x5118, subindex 0x00 */
 UNS8 EMCY_HELIUM_VALVE_80E = 0x0;		/* Mapped at index 0x5119, subindex 0x00 */
+UNS8 FAILSAFE_MODE_202 = 0x0;		/* Mapped at index 0x5180, subindex 0x00 */
+UNS8 FAILSAFE_ABORT_301 = 0x0;		/* Mapped at index 0x5181, subindex 0x00 */
 
 /**************************************************************************/
 /* Declaration of value range types                                       */
@@ -98,7 +100,7 @@ $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
                        { RO, uint8, sizeof (UNS8), (void*)&actuators_obj1001 }
                      };
 
-/* index 0x1003 :   Pre-defined Error Field */
+/* index 0x1003 :   Pre-defined Error Field. */
                     UNS8 actuators_highestSubIndex_obj1003 = 0; /* number of subindex - 1*/
                     UNS32 actuators_obj1003[] = 
                     {
@@ -155,19 +157,19 @@ $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
                     UNS32 actuators_obj1016[] = 
                     {
                       0x10064,	/* 65636 */
-                      0x503E8,	/* 328680 */
-                      0x703E8,	/* 459752 */
-                      0x803E8,	/* 525288 */
-                      0x903E8,	/* 590824 */
-                      0xA03E8,	/* 656360 */
-                      0xB03E8,	/* 721896 */
-                      0xC03E8,	/* 787432 */
-                      0xD03E8,	/* 852968 */
-                      0x603E8,	/* 394216 */
-                      0x403E8,	/* 263144 */
-                      0xE03E8,	/* 918504 */
-                      0x0,	/* 0 */
-                      0x0,	/* 0 */
+                      0x503F8,	/* 328696 */
+                      0x703F8,	/* 459768 */
+                      0x803F8,	/* 525304 */
+                      0x903F8,	/* 590840 */
+                      0xA03F8,	/* 656376 */
+                      0xB03F8,	/* 721912 */
+                      0xC03F8,	/* 787448 */
+                      0xD03F8,	/* 852984 */
+                      0x603F8,	/* 394232 */
+                      0x403F8,	/* 263160 */
+                      0xE03F8,	/* 918520 */
+                      0x12710,	/* 75536 */
+                      0x22710,	/* 141072 */
                       0x0,	/* 0 */
                       0x0	/* 0 */
                     };
@@ -511,7 +513,7 @@ $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 /* index 0x1404 :   Receive PDO 5 Parameter. */
                     UNS8 actuators_highestSubIndex_obj1404 = 6; /* number of subindex - 1*/
-                    UNS32 actuators_obj1404_COB_ID_used_by_PDO = 0x804;	/* 2052 */
+                    UNS32 actuators_obj1404_COB_ID_used_by_PDO = 0x84;	/* 132 */
                     UNS8 actuators_obj1404_Transmission_Type = 0x0;	/* 0 */
                     UNS16 actuators_obj1404_Inhibit_Time = 0x0;	/* 0 */
                     UNS8 actuators_obj1404_Compatibility_Entry = 0x0;	/* 0 */
@@ -530,7 +532,7 @@ $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 /* index 0x1405 :   Receive PDO 6 Parameter. */
                     UNS8 actuators_highestSubIndex_obj1405 = 6; /* number of subindex - 1*/
-                    UNS32 actuators_obj1405_COB_ID_used_by_PDO = 0x806;	/* 2054 */
+                    UNS32 actuators_obj1405_COB_ID_used_by_PDO = 0x86;	/* 134 */
                     UNS8 actuators_obj1405_Transmission_Type = 0x0;	/* 0 */
                     UNS16 actuators_obj1405_Inhibit_Time = 0x0;	/* 0 */
                     UNS8 actuators_obj1405_Compatibility_Entry = 0x0;	/* 0 */
@@ -549,7 +551,7 @@ $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 /* index 0x1406 :   Receive PDO 7 Parameter. */
                     UNS8 actuators_highestSubIndex_obj1406 = 6; /* number of subindex - 1*/
-                    UNS32 actuators_obj1406_COB_ID_used_by_PDO = 0x807;	/* 2055 */
+                    UNS32 actuators_obj1406_COB_ID_used_by_PDO = 0x87;	/* 135 */
                     UNS8 actuators_obj1406_Transmission_Type = 0x0;	/* 0 */
                     UNS16 actuators_obj1406_Inhibit_Time = 0x0;	/* 0 */
                     UNS8 actuators_obj1406_Compatibility_Entry = 0x0;	/* 0 */
@@ -568,7 +570,7 @@ $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 /* index 0x1407 :   Receive PDO 8 Parameter. */
                     UNS8 actuators_highestSubIndex_obj1407 = 6; /* number of subindex - 1*/
-                    UNS32 actuators_obj1407_COB_ID_used_by_PDO = 0x808;	/* 2056 */
+                    UNS32 actuators_obj1407_COB_ID_used_by_PDO = 0x88;	/* 136 */
                     UNS8 actuators_obj1407_Transmission_Type = 0x0;	/* 0 */
                     UNS16 actuators_obj1407_Inhibit_Time = 0x0;	/* 0 */
                     UNS8 actuators_obj1407_Compatibility_Entry = 0x0;	/* 0 */
@@ -587,7 +589,7 @@ $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 /* index 0x1408 :   Receive PDO 9 Parameter. */
                     UNS8 actuators_highestSubIndex_obj1408 = 6; /* number of subindex - 1*/
-                    UNS32 actuators_obj1408_COB_ID_used_by_PDO = 0x809;	/* 2057 */
+                    UNS32 actuators_obj1408_COB_ID_used_by_PDO = 0x89;	/* 137 */
                     UNS8 actuators_obj1408_Transmission_Type = 0x0;	/* 0 */
                     UNS16 actuators_obj1408_Inhibit_Time = 0x0;	/* 0 */
                     UNS8 actuators_obj1408_Compatibility_Entry = 0x0;	/* 0 */
@@ -606,7 +608,7 @@ $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 /* index 0x1409 :   Receive PDO 10 Parameter. */
                     UNS8 actuators_highestSubIndex_obj1409 = 6; /* number of subindex - 1*/
-                    UNS32 actuators_obj1409_COB_ID_used_by_PDO = 0x80A;	/* 2058 */
+                    UNS32 actuators_obj1409_COB_ID_used_by_PDO = 0x8A;	/* 138 */
                     UNS8 actuators_obj1409_Transmission_Type = 0x0;	/* 0 */
                     UNS16 actuators_obj1409_Inhibit_Time = 0x0;	/* 0 */
                     UNS8 actuators_obj1409_Compatibility_Entry = 0x0;	/* 0 */
@@ -625,7 +627,7 @@ $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 /* index 0x140A :   Receive PDO 11 Parameter. */
                     UNS8 actuators_highestSubIndex_obj140A = 6; /* number of subindex - 1*/
-                    UNS32 actuators_obj140A_COB_ID_used_by_PDO = 0x80B;	/* 2059 */
+                    UNS32 actuators_obj140A_COB_ID_used_by_PDO = 0x8B;	/* 139 */
                     UNS8 actuators_obj140A_Transmission_Type = 0x0;	/* 0 */
                     UNS16 actuators_obj140A_Inhibit_Time = 0x0;	/* 0 */
                     UNS8 actuators_obj140A_Compatibility_Entry = 0x0;	/* 0 */
@@ -644,7 +646,7 @@ $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 /* index 0x140B :   Receive PDO 12 Parameter. */
                     UNS8 actuators_highestSubIndex_obj140B = 6; /* number of subindex - 1*/
-                    UNS32 actuators_obj140B_COB_ID_used_by_PDO = 0x80C;	/* 2060 */
+                    UNS32 actuators_obj140B_COB_ID_used_by_PDO = 0x8C;	/* 140 */
                     UNS8 actuators_obj140B_Transmission_Type = 0x0;	/* 0 */
                     UNS16 actuators_obj140B_Inhibit_Time = 0x0;	/* 0 */
                     UNS8 actuators_obj140B_Compatibility_Entry = 0x0;	/* 0 */
@@ -663,7 +665,7 @@ $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 /* index 0x140C :   Receive PDO 13 Parameter. */
                     UNS8 actuators_highestSubIndex_obj140C = 6; /* number of subindex - 1*/
-                    UNS32 actuators_obj140C_COB_ID_used_by_PDO = 0x80D;	/* 2061 */
+                    UNS32 actuators_obj140C_COB_ID_used_by_PDO = 0x8D;	/* 141 */
                     UNS8 actuators_obj140C_Transmission_Type = 0x0;	/* 0 */
                     UNS16 actuators_obj140C_Inhibit_Time = 0x0;	/* 0 */
                     UNS8 actuators_obj140C_Compatibility_Entry = 0x0;	/* 0 */
@@ -682,7 +684,7 @@ $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 /* index 0x140D :   Receive PDO 14 Parameter. */
                     UNS8 actuators_highestSubIndex_obj140D = 6; /* number of subindex - 1*/
-                    UNS32 actuators_obj140D_COB_ID_used_by_PDO = 0x80E;	/* 2062 */
+                    UNS32 actuators_obj140D_COB_ID_used_by_PDO = 0x8E;	/* 142 */
                     UNS8 actuators_obj140D_Transmission_Type = 0x0;	/* 0 */
                     UNS16 actuators_obj140D_Inhibit_Time = 0x0;	/* 0 */
                     UNS8 actuators_obj140D_Compatibility_Entry = 0x0;	/* 0 */
@@ -697,63 +699,6 @@ $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
                        { RW, uint8, sizeof (UNS8), (void*)&actuators_obj140D_Compatibility_Entry },
                        { RW, uint16, sizeof (UNS16), (void*)&actuators_obj140D_Event_Timer },
                        { RW, uint8, sizeof (UNS8), (void*)&actuators_obj140D_SYNC_start_value }
-                     };
-
-/* index 0x140E :   Receive PDO 15 Parameter. */
-                    UNS8 actuators_highestSubIndex_obj140E = 6; /* number of subindex - 1*/
-                    UNS32 actuators_obj140E_COB_ID_used_by_PDO = 0x0;	/* 0 */
-                    UNS8 actuators_obj140E_Transmission_Type = 0x0;	/* 0 */
-                    UNS16 actuators_obj140E_Inhibit_Time = 0x0;	/* 0 */
-                    UNS8 actuators_obj140E_Compatibility_Entry = 0x0;	/* 0 */
-                    UNS16 actuators_obj140E_Event_Timer = 0x0;	/* 0 */
-                    UNS8 actuators_obj140E_SYNC_start_value = 0x0;	/* 0 */
-                    subindex actuators_Index140E[] = 
-                     {
-                       { RO, uint8, sizeof (UNS8), (void*)&actuators_highestSubIndex_obj140E },
-                       { RW, uint32, sizeof (UNS32), (void*)&actuators_obj140E_COB_ID_used_by_PDO },
-                       { RW, uint8, sizeof (UNS8), (void*)&actuators_obj140E_Transmission_Type },
-                       { RW, uint16, sizeof (UNS16), (void*)&actuators_obj140E_Inhibit_Time },
-                       { RW, uint8, sizeof (UNS8), (void*)&actuators_obj140E_Compatibility_Entry },
-                       { RW, uint16, sizeof (UNS16), (void*)&actuators_obj140E_Event_Timer },
-                       { RW, uint8, sizeof (UNS8), (void*)&actuators_obj140E_SYNC_start_value }
-                     };
-
-/* index 0x140F :   Receive PDO 16 Parameter. */
-                    UNS8 actuators_highestSubIndex_obj140F = 6; /* number of subindex - 1*/
-                    UNS32 actuators_obj140F_COB_ID_used_by_PDO = 0x0;	/* 0 */
-                    UNS8 actuators_obj140F_Transmission_Type = 0x0;	/* 0 */
-                    UNS16 actuators_obj140F_Inhibit_Time = 0x0;	/* 0 */
-                    UNS8 actuators_obj140F_Compatibility_Entry = 0x0;	/* 0 */
-                    UNS16 actuators_obj140F_Event_Timer = 0x0;	/* 0 */
-                    UNS8 actuators_obj140F_SYNC_start_value = 0x0;	/* 0 */
-                    subindex actuators_Index140F[] = 
-                     {
-                       { RO, uint8, sizeof (UNS8), (void*)&actuators_highestSubIndex_obj140F },
-                       { RW, uint32, sizeof (UNS32), (void*)&actuators_obj140F_COB_ID_used_by_PDO },
-                       { RW, uint8, sizeof (UNS8), (void*)&actuators_obj140F_Transmission_Type },
-                       { RW, uint16, sizeof (UNS16), (void*)&actuators_obj140F_Inhibit_Time },
-                       { RW, uint8, sizeof (UNS8), (void*)&actuators_obj140F_Compatibility_Entry },
-                       { RW, uint16, sizeof (UNS16), (void*)&actuators_obj140F_Event_Timer },
-                       { RW, uint8, sizeof (UNS8), (void*)&actuators_obj140F_SYNC_start_value }
-                     };
-
-/* index 0x1410 :   Receive PDO 17 Parameter. */
-                    UNS8 actuators_highestSubIndex_obj1410 = 6; /* number of subindex - 1*/
-                    UNS32 actuators_obj1410_COB_ID_used_by_PDO = 0x0;	/* 0 */
-                    UNS8 actuators_obj1410_Transmission_Type = 0x0;	/* 0 */
-                    UNS16 actuators_obj1410_Inhibit_Time = 0x0;	/* 0 */
-                    UNS8 actuators_obj1410_Compatibility_Entry = 0x0;	/* 0 */
-                    UNS16 actuators_obj1410_Event_Timer = 0x0;	/* 0 */
-                    UNS8 actuators_obj1410_SYNC_start_value = 0x0;	/* 0 */
-                    subindex actuators_Index1410[] = 
-                     {
-                       { RO, uint8, sizeof (UNS8), (void*)&actuators_highestSubIndex_obj1410 },
-                       { RW, uint32, sizeof (UNS32), (void*)&actuators_obj1410_COB_ID_used_by_PDO },
-                       { RW, uint8, sizeof (UNS8), (void*)&actuators_obj1410_Transmission_Type },
-                       { RW, uint16, sizeof (UNS16), (void*)&actuators_obj1410_Inhibit_Time },
-                       { RW, uint8, sizeof (UNS8), (void*)&actuators_obj1410_Compatibility_Entry },
-                       { RW, uint16, sizeof (UNS16), (void*)&actuators_obj1410_Event_Timer },
-                       { RW, uint8, sizeof (UNS8), (void*)&actuators_obj1410_SYNC_start_value }
                      };
 
 /* index 0x1600 :   Receive PDO 1 Mapping. */
@@ -830,7 +775,7 @@ $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
                     UNS8 actuators_highestSubIndex_obj1605 = 1; /* number of subindex - 1*/
                     UNS32 actuators_obj1605[] = 
                     {
-                      0x51110008	/* 1360068616 */
+                      0x51110040	/* 1360068672 */
                     };
                     subindex actuators_Index1605[] = 
                      {
@@ -842,7 +787,7 @@ $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
                     UNS8 actuators_highestSubIndex_obj1606 = 1; /* number of subindex - 1*/
                     UNS32 actuators_obj1606[] = 
                     {
-                      0x51120008	/* 1360134152 */
+                      0x51120020	/* 1360134176 */
                     };
                     subindex actuators_Index1606[] = 
                      {
@@ -854,7 +799,7 @@ $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
                     UNS8 actuators_highestSubIndex_obj1607 = 1; /* number of subindex - 1*/
                     UNS32 actuators_obj1607[] = 
                     {
-                      0x51130008	/* 1360199688 */
+                      0x51130010	/* 1360199696 */
                     };
                     subindex actuators_Index1607[] = 
                      {
@@ -866,7 +811,7 @@ $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
                     UNS8 actuators_highestSubIndex_obj1608 = 1; /* number of subindex - 1*/
                     UNS32 actuators_obj1608[] = 
                     {
-                      0x51140008	/* 1360265224 */
+                      0x51140010	/* 1360265232 */
                     };
                     subindex actuators_Index1608[] = 
                      {
@@ -932,36 +877,6 @@ $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
                      {
                        { RW, uint8, sizeof (UNS8), (void*)&actuators_highestSubIndex_obj160D },
                        { RW, uint32, sizeof (UNS32), (void*)&actuators_obj160D[0] }
-                     };
-
-/* index 0x160E :   Receive PDO 15 Mapping. */
-                    UNS8 actuators_highestSubIndex_obj160E = 0; /* number of subindex - 1*/
-                    UNS32 actuators_obj160E[] = 
-                    {
-                    };
-                    subindex actuators_Index160E[] = 
-                     {
-                       { RW, uint8, sizeof (UNS8), (void*)&actuators_highestSubIndex_obj160E }
-                     };
-
-/* index 0x160F :   Receive PDO 16 Mapping. */
-                    UNS8 actuators_highestSubIndex_obj160F = 0; /* number of subindex - 1*/
-                    UNS32 actuators_obj160F[] = 
-                    {
-                    };
-                    subindex actuators_Index160F[] = 
-                     {
-                       { RW, uint8, sizeof (UNS8), (void*)&actuators_highestSubIndex_obj160F }
-                     };
-
-/* index 0x1610 :   Receive PDO 17 Mapping. */
-                    UNS8 actuators_highestSubIndex_obj1610 = 0; /* number of subindex - 1*/
-                    UNS32 actuators_obj1610[] = 
-                    {
-                    };
-                    subindex actuators_Index1610[] = 
-                     {
-                       { RW, uint8, sizeof (UNS8), (void*)&actuators_highestSubIndex_obj1610 }
                      };
 
 /* index 0x1800 :   Transmit PDO 1 Parameter. */
@@ -1747,6 +1662,64 @@ $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
                        { RW, uint8, sizeof (UNS8), (void*)&actuators_obj181A_SYNC_start_value }
                      };
 
+/* index 0x181B :   Transmit PDO 28 Parameter. */
+                    UNS8 actuators_highestSubIndex_obj181B = 6; /* number of subindex - 1*/
+                    UNS32 actuators_obj181B_COB_ID_used_by_PDO = 0x202;	/* 514 */
+                    UNS8 actuators_obj181B_Transmission_Type = 0xFE;	/* 254 */
+                    UNS16 actuators_obj181B_Inhibit_Time = 0x0;	/* 0 */
+                    UNS8 actuators_obj181B_Compatibility_Entry = 0x0;	/* 0 */
+                    UNS16 actuators_obj181B_Event_Timer = 0x0;	/* 0 */
+                    UNS8 actuators_obj181B_SYNC_start_value = 0x0;	/* 0 */
+                    ODCallback_t actuators_Index181B_callbacks[] = 
+                     {
+                       NULL,
+                       NULL,
+                       NULL,
+                       NULL,
+                       NULL,
+                       NULL,
+                       NULL,
+                     };
+                    subindex actuators_Index181B[] = 
+                     {
+                       { RO, uint8, sizeof (UNS8), (void*)&actuators_highestSubIndex_obj181B },
+                       { RW, uint32, sizeof (UNS32), (void*)&actuators_obj181B_COB_ID_used_by_PDO },
+                       { RW, uint8, sizeof (UNS8), (void*)&actuators_obj181B_Transmission_Type },
+                       { RW, uint16, sizeof (UNS16), (void*)&actuators_obj181B_Inhibit_Time },
+                       { RW, uint8, sizeof (UNS8), (void*)&actuators_obj181B_Compatibility_Entry },
+                       { RW, uint16, sizeof (UNS16), (void*)&actuators_obj181B_Event_Timer },
+                       { RW, uint8, sizeof (UNS8), (void*)&actuators_obj181B_SYNC_start_value }
+                     };
+
+/* index 0x181C :   Transmit PDO 29 Parameter. */
+                    UNS8 actuators_highestSubIndex_obj181C = 6; /* number of subindex - 1*/
+                    UNS32 actuators_obj181C_COB_ID_used_by_PDO = 0x301;	/* 769 */
+                    UNS8 actuators_obj181C_Transmission_Type = 0xFE;	/* 254 */
+                    UNS16 actuators_obj181C_Inhibit_Time = 0x0;	/* 0 */
+                    UNS8 actuators_obj181C_Compatibility_Entry = 0x0;	/* 0 */
+                    UNS16 actuators_obj181C_Event_Timer = 0x0;	/* 0 */
+                    UNS8 actuators_obj181C_SYNC_start_value = 0x0;	/* 0 */
+                    ODCallback_t actuators_Index181C_callbacks[] = 
+                     {
+                       NULL,
+                       NULL,
+                       NULL,
+                       NULL,
+                       NULL,
+                       NULL,
+                       NULL,
+                     };
+                    subindex actuators_Index181C[] = 
+                     {
+                       { RO, uint8, sizeof (UNS8), (void*)&actuators_highestSubIndex_obj181C },
+                       { RW, uint32, sizeof (UNS32), (void*)&actuators_obj181C_COB_ID_used_by_PDO },
+                       { RW, uint8, sizeof (UNS8), (void*)&actuators_obj181C_Transmission_Type },
+                       { RW, uint16, sizeof (UNS16), (void*)&actuators_obj181C_Inhibit_Time },
+                       { RW, uint8, sizeof (UNS8), (void*)&actuators_obj181C_Compatibility_Entry },
+                       { RW, uint16, sizeof (UNS16), (void*)&actuators_obj181C_Event_Timer },
+                       { RW, uint8, sizeof (UNS8), (void*)&actuators_obj181C_SYNC_start_value }
+                     };
+
 /* index 0x1A00 :   Transmit PDO 1 Mapping. */
                     UNS8 actuators_highestSubIndex_obj1A00 = 1; /* number of subindex - 1*/
                     UNS32 actuators_obj1A00[] = 
@@ -2071,6 +2044,30 @@ $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
                        { RW, uint32, sizeof (UNS32), (void*)&actuators_obj1A1A[0] }
                      };
 
+/* index 0x1A1B :   Transmit PDO 28 Mapping. */
+                    UNS8 actuators_highestSubIndex_obj1A1B = 1; /* number of subindex - 1*/
+                    UNS32 actuators_obj1A1B[] = 
+                    {
+                      0x51800008	/* 1367343112 */
+                    };
+                    subindex actuators_Index1A1B[] = 
+                     {
+                       { RW, uint8, sizeof (UNS8), (void*)&actuators_highestSubIndex_obj1A1B },
+                       { RW, uint32, sizeof (UNS32), (void*)&actuators_obj1A1B[0] }
+                     };
+
+/* index 0x1A1C :   Transmit PDO 29 Mapping. */
+                    UNS8 actuators_highestSubIndex_obj1A1C = 1; /* number of subindex - 1*/
+                    UNS32 actuators_obj1A1C[] = 
+                    {
+                      0x51810008	/* 1367408648 */
+                    };
+                    subindex actuators_Index1A1C[] = 
+                     {
+                       { RW, uint8, sizeof (UNS8), (void*)&actuators_highestSubIndex_obj1A1C },
+                       { RW, uint32, sizeof (UNS32), (void*)&actuators_obj1A1C[0] }
+                     };
+
 /* index 0x5000 :   Mapped variable LEFT_MOTOR_209 */
                     ODCallback_t LEFT_MOTOR_209_callbacks[] = 
                      {
@@ -2294,7 +2291,7 @@ $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
                      };
                     subindex actuators_Index5111[] = 
                      {
-                       { RW, uint8, sizeof (UNS8), (void*)&EMCY_CONTROL_SURFACE_806 }
+                       { RW, int64, sizeof (INTEGER64), (void*)&EMCY_CONTROL_SURFACE_806 }
                      };
 
 /* index 0x5112 :   Mapped variable EMCY_TAIL_ELECTROMOTOR_807 */
@@ -2304,7 +2301,7 @@ $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
                      };
                     subindex actuators_Index5112[] = 
                      {
-                       { RW, uint8, sizeof (UNS8), (void*)&EMCY_TAIL_ELECTROMOTOR_807 }
+                       { RW, int32, sizeof (INTEGER32), (void*)&EMCY_TAIL_ELECTROMOTOR_807 }
                      };
 
 /* index 0x5113 :   Mapped variable EMCY_LEFT_MAIN_ENGINE_808 */
@@ -2314,7 +2311,7 @@ $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
                      };
                     subindex actuators_Index5113[] = 
                      {
-                       { RW, uint8, sizeof (UNS8), (void*)&EMCY_LEFT_MAIN_ENGINE_808 }
+                       { RW, int16, sizeof (INTEGER16), (void*)&EMCY_LEFT_MAIN_ENGINE_808 }
                      };
 
 /* index 0x5114 :   Mapped variable EMCY_RIGHT_MAIN_ENGINE_809 */
@@ -2324,7 +2321,7 @@ $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
                      };
                     subindex actuators_Index5114[] = 
                      {
-                       { RW, uint8, sizeof (UNS8), (void*)&EMCY_RIGHT_MAIN_ENGINE_809 }
+                       { RW, int16, sizeof (INTEGER16), (void*)&EMCY_RIGHT_MAIN_ENGINE_809 }
                      };
 
 /* index 0x5115 :   Mapped variable EMCY_LEFT_MAIN_ENGINE_SERVO_80A */
@@ -2373,6 +2370,18 @@ $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
                        { RW, uint8, sizeof (UNS8), (void*)&EMCY_HELIUM_VALVE_80E }
                      };
 
+/* index 0x5180 :   Mapped variable FAILSAFE_MODE_202 */
+                    subindex actuators_Index5180[] = 
+                     {
+                       { RW, uint8, sizeof (UNS8), (void*)&FAILSAFE_MODE_202 }
+                     };
+
+/* index 0x5181 :   Mapped variable FAILSAFE_ABORT_301 */
+                    subindex actuators_Index5181[] = 
+                     {
+                       { RW, uint8, sizeof (UNS8), (void*)&FAILSAFE_ABORT_301 }
+                     };
+
 /**************************************************************************/
 /* Declaration of pointed variables                                       */
 /**************************************************************************/
@@ -2381,6 +2390,7 @@ const indextable actuators_objdict[] =
 {
   { (subindex*)actuators_Index1000,sizeof(actuators_Index1000)/sizeof(actuators_Index1000[0]), 0x1000},
   { (subindex*)actuators_Index1001,sizeof(actuators_Index1001)/sizeof(actuators_Index1001[0]), 0x1001},
+  { (subindex*)actuators_Index1003,sizeof(actuators_Index1003)/sizeof(actuators_Index1003[0]), 0x1003},
   { (subindex*)actuators_Index1005,sizeof(actuators_Index1005)/sizeof(actuators_Index1005[0]), 0x1005},
   { (subindex*)actuators_Index1006,sizeof(actuators_Index1006)/sizeof(actuators_Index1006[0]), 0x1006},
   { (subindex*)actuators_Index1014,sizeof(actuators_Index1014)/sizeof(actuators_Index1014[0]), 0x1014},
@@ -2416,9 +2426,6 @@ const indextable actuators_objdict[] =
   { (subindex*)actuators_Index140B,sizeof(actuators_Index140B)/sizeof(actuators_Index140B[0]), 0x140B},
   { (subindex*)actuators_Index140C,sizeof(actuators_Index140C)/sizeof(actuators_Index140C[0]), 0x140C},
   { (subindex*)actuators_Index140D,sizeof(actuators_Index140D)/sizeof(actuators_Index140D[0]), 0x140D},
-  { (subindex*)actuators_Index140E,sizeof(actuators_Index140E)/sizeof(actuators_Index140E[0]), 0x140E},
-  { (subindex*)actuators_Index140F,sizeof(actuators_Index140F)/sizeof(actuators_Index140F[0]), 0x140F},
-  { (subindex*)actuators_Index1410,sizeof(actuators_Index1410)/sizeof(actuators_Index1410[0]), 0x1410},
   { (subindex*)actuators_Index1600,sizeof(actuators_Index1600)/sizeof(actuators_Index1600[0]), 0x1600},
   { (subindex*)actuators_Index1601,sizeof(actuators_Index1601)/sizeof(actuators_Index1601[0]), 0x1601},
   { (subindex*)actuators_Index1602,sizeof(actuators_Index1602)/sizeof(actuators_Index1602[0]), 0x1602},
@@ -2433,9 +2440,6 @@ const indextable actuators_objdict[] =
   { (subindex*)actuators_Index160B,sizeof(actuators_Index160B)/sizeof(actuators_Index160B[0]), 0x160B},
   { (subindex*)actuators_Index160C,sizeof(actuators_Index160C)/sizeof(actuators_Index160C[0]), 0x160C},
   { (subindex*)actuators_Index160D,sizeof(actuators_Index160D)/sizeof(actuators_Index160D[0]), 0x160D},
-  { (subindex*)actuators_Index160E,sizeof(actuators_Index160E)/sizeof(actuators_Index160E[0]), 0x160E},
-  { (subindex*)actuators_Index160F,sizeof(actuators_Index160F)/sizeof(actuators_Index160F[0]), 0x160F},
-  { (subindex*)actuators_Index1610,sizeof(actuators_Index1610)/sizeof(actuators_Index1610[0]), 0x1610},
   { (subindex*)actuators_Index1800,sizeof(actuators_Index1800)/sizeof(actuators_Index1800[0]), 0x1800},
   { (subindex*)actuators_Index1801,sizeof(actuators_Index1801)/sizeof(actuators_Index1801[0]), 0x1801},
   { (subindex*)actuators_Index1802,sizeof(actuators_Index1802)/sizeof(actuators_Index1802[0]), 0x1802},
@@ -2463,6 +2467,8 @@ const indextable actuators_objdict[] =
   { (subindex*)actuators_Index1818,sizeof(actuators_Index1818)/sizeof(actuators_Index1818[0]), 0x1818},
   { (subindex*)actuators_Index1819,sizeof(actuators_Index1819)/sizeof(actuators_Index1819[0]), 0x1819},
   { (subindex*)actuators_Index181A,sizeof(actuators_Index181A)/sizeof(actuators_Index181A[0]), 0x181A},
+  { (subindex*)actuators_Index181B,sizeof(actuators_Index181B)/sizeof(actuators_Index181B[0]), 0x181B},
+  { (subindex*)actuators_Index181C,sizeof(actuators_Index181C)/sizeof(actuators_Index181C[0]), 0x181C},
   { (subindex*)actuators_Index1A00,sizeof(actuators_Index1A00)/sizeof(actuators_Index1A00[0]), 0x1A00},
   { (subindex*)actuators_Index1A01,sizeof(actuators_Index1A01)/sizeof(actuators_Index1A01[0]), 0x1A01},
   { (subindex*)actuators_Index1A02,sizeof(actuators_Index1A02)/sizeof(actuators_Index1A02[0]), 0x1A02},
@@ -2490,6 +2496,8 @@ const indextable actuators_objdict[] =
   { (subindex*)actuators_Index1A18,sizeof(actuators_Index1A18)/sizeof(actuators_Index1A18[0]), 0x1A18},
   { (subindex*)actuators_Index1A19,sizeof(actuators_Index1A19)/sizeof(actuators_Index1A19[0]), 0x1A19},
   { (subindex*)actuators_Index1A1A,sizeof(actuators_Index1A1A)/sizeof(actuators_Index1A1A[0]), 0x1A1A},
+  { (subindex*)actuators_Index1A1B,sizeof(actuators_Index1A1B)/sizeof(actuators_Index1A1B[0]), 0x1A1B},
+  { (subindex*)actuators_Index1A1C,sizeof(actuators_Index1A1C)/sizeof(actuators_Index1A1C[0]), 0x1A1C},
   { (subindex*)actuators_Index5000,sizeof(actuators_Index5000)/sizeof(actuators_Index5000[0]), 0x5000},
   { (subindex*)actuators_Index5001,sizeof(actuators_Index5001)/sizeof(actuators_Index5001[0]), 0x5001},
   { (subindex*)actuators_Index5002,sizeof(actuators_Index5002)/sizeof(actuators_Index5002[0]), 0x5002},
@@ -2531,6 +2539,8 @@ const indextable actuators_objdict[] =
   { (subindex*)actuators_Index5117,sizeof(actuators_Index5117)/sizeof(actuators_Index5117[0]), 0x5117},
   { (subindex*)actuators_Index5118,sizeof(actuators_Index5118)/sizeof(actuators_Index5118[0]), 0x5118},
   { (subindex*)actuators_Index5119,sizeof(actuators_Index5119)/sizeof(actuators_Index5119[0]), 0x5119},
+  { (subindex*)actuators_Index5180,sizeof(actuators_Index5180)/sizeof(actuators_Index5180[0]), 0x5180},
+  { (subindex*)actuators_Index5181,sizeof(actuators_Index5181)/sizeof(actuators_Index5181[0]), 0x5181},
 };
 
 const indextable * actuators_scanIndexOD (UNS16 wIndex, UNS32 * errorCode, ODCallback_t **callbacks)
@@ -2540,156 +2550,157 @@ const indextable * actuators_scanIndexOD (UNS16 wIndex, UNS32 * errorCode, ODCal
 	switch(wIndex){
 		case 0x1000: i = 0;break;
 		case 0x1001: i = 1;break;
-		case 0x1005: i = 2;*callbacks = actuators_Index1005_callbacks; break;
-		case 0x1006: i = 3;*callbacks = actuators_Index1006_callbacks; break;
-		case 0x1014: i = 4;break;
-		case 0x1016: i = 5;break;
-		case 0x1017: i = 6;*callbacks = actuators_Index1017_callbacks; break;
-		case 0x1018: i = 7;break;
-		case 0x1280: i = 8;break;
-		case 0x1281: i = 9;break;
-		case 0x1282: i = 10;break;
-		case 0x1283: i = 11;break;
-		case 0x1284: i = 12;break;
-		case 0x1285: i = 13;break;
-		case 0x1286: i = 14;break;
-		case 0x1287: i = 15;break;
-		case 0x1288: i = 16;break;
-		case 0x1289: i = 17;break;
-		case 0x128A: i = 18;break;
-		case 0x128B: i = 19;break;
-		case 0x128C: i = 20;break;
-		case 0x128D: i = 21;break;
-		case 0x128E: i = 22;break;
-		case 0x1400: i = 23;*callbacks = actuators_Index1400_callbacks; break;
-		case 0x1401: i = 24;*callbacks = actuators_Index1401_callbacks; break;
-		case 0x1402: i = 25;break;
-		case 0x1403: i = 26;break;
-		case 0x1404: i = 27;break;
-		case 0x1405: i = 28;break;
-		case 0x1406: i = 29;break;
-		case 0x1407: i = 30;break;
-		case 0x1408: i = 31;break;
-		case 0x1409: i = 32;break;
-		case 0x140A: i = 33;break;
-		case 0x140B: i = 34;break;
-		case 0x140C: i = 35;break;
-		case 0x140D: i = 36;break;
-		case 0x140E: i = 37;break;
-		case 0x140F: i = 38;break;
-		case 0x1410: i = 39;break;
-		case 0x1600: i = 40;*callbacks = actuators_Index1600_callbacks; break;
-		case 0x1601: i = 41;*callbacks = actuators_Index1601_callbacks; break;
-		case 0x1602: i = 42;break;
-		case 0x1603: i = 43;break;
-		case 0x1604: i = 44;break;
-		case 0x1605: i = 45;break;
-		case 0x1606: i = 46;break;
-		case 0x1607: i = 47;break;
-		case 0x1608: i = 48;break;
-		case 0x1609: i = 49;break;
-		case 0x160A: i = 50;break;
-		case 0x160B: i = 51;break;
-		case 0x160C: i = 52;break;
-		case 0x160D: i = 53;break;
-		case 0x160E: i = 54;break;
-		case 0x160F: i = 55;break;
-		case 0x1610: i = 56;break;
-		case 0x1800: i = 57;*callbacks = actuators_Index1800_callbacks; break;
-		case 0x1801: i = 58;*callbacks = actuators_Index1801_callbacks; break;
-		case 0x1802: i = 59;*callbacks = actuators_Index1802_callbacks; break;
-		case 0x1803: i = 60;*callbacks = actuators_Index1803_callbacks; break;
-		case 0x1804: i = 61;*callbacks = actuators_Index1804_callbacks; break;
-		case 0x1805: i = 62;*callbacks = actuators_Index1805_callbacks; break;
-		case 0x1806: i = 63;*callbacks = actuators_Index1806_callbacks; break;
-		case 0x1807: i = 64;*callbacks = actuators_Index1807_callbacks; break;
-		case 0x1808: i = 65;*callbacks = actuators_Index1808_callbacks; break;
-		case 0x1809: i = 66;*callbacks = actuators_Index1809_callbacks; break;
-		case 0x180A: i = 67;*callbacks = actuators_Index180A_callbacks; break;
-		case 0x180B: i = 68;*callbacks = actuators_Index180B_callbacks; break;
-		case 0x180C: i = 69;*callbacks = actuators_Index180C_callbacks; break;
-		case 0x180D: i = 70;*callbacks = actuators_Index180D_callbacks; break;
-		case 0x180E: i = 71;*callbacks = actuators_Index180E_callbacks; break;
-		case 0x180F: i = 72;*callbacks = actuators_Index180F_callbacks; break;
-		case 0x1810: i = 73;*callbacks = actuators_Index1810_callbacks; break;
-		case 0x1811: i = 74;*callbacks = actuators_Index1811_callbacks; break;
-		case 0x1812: i = 75;*callbacks = actuators_Index1812_callbacks; break;
-		case 0x1813: i = 76;*callbacks = actuators_Index1813_callbacks; break;
-		case 0x1814: i = 77;*callbacks = actuators_Index1814_callbacks; break;
-		case 0x1815: i = 78;*callbacks = actuators_Index1815_callbacks; break;
-		case 0x1816: i = 79;*callbacks = actuators_Index1816_callbacks; break;
-		case 0x1817: i = 80;*callbacks = actuators_Index1817_callbacks; break;
-		case 0x1818: i = 81;*callbacks = actuators_Index1818_callbacks; break;
-		case 0x1819: i = 82;*callbacks = actuators_Index1819_callbacks; break;
-		case 0x181A: i = 83;*callbacks = actuators_Index181A_callbacks; break;
-		case 0x1A00: i = 84;break;
-		case 0x1A01: i = 85;break;
-		case 0x1A02: i = 86;break;
-		case 0x1A03: i = 87;break;
-		case 0x1A04: i = 88;break;
-		case 0x1A05: i = 89;break;
-		case 0x1A06: i = 90;break;
-		case 0x1A07: i = 91;break;
-		case 0x1A08: i = 92;break;
-		case 0x1A09: i = 93;break;
-		case 0x1A0A: i = 94;break;
-		case 0x1A0B: i = 95;break;
-		case 0x1A0C: i = 96;break;
-		case 0x1A0D: i = 97;break;
-		case 0x1A0E: i = 98;break;
-		case 0x1A0F: i = 99;break;
-		case 0x1A10: i = 100;break;
-		case 0x1A11: i = 101;break;
-		case 0x1A12: i = 102;break;
-		case 0x1A13: i = 103;break;
-		case 0x1A14: i = 104;break;
-		case 0x1A15: i = 105;break;
-		case 0x1A16: i = 106;break;
-		case 0x1A17: i = 107;break;
-		case 0x1A18: i = 108;break;
-		case 0x1A19: i = 109;break;
-		case 0x1A1A: i = 110;break;
-		case 0x5000: i = 111;*callbacks = LEFT_MOTOR_209_callbacks; break;
-		case 0x5001: i = 112;break;
-		case 0x5002: i = 113;break;
-		case 0x5003: i = 114;break;
-		case 0x5004: i = 115;break;
-		case 0x5005: i = 116;break;
-		case 0x5006: i = 117;break;
-		case 0x5007: i = 118;break;
-		case 0x5008: i = 119;break;
-		case 0x5009: i = 120;break;
-		case 0x500A: i = 121;break;
-		case 0x500B: i = 122;break;
-		case 0x500C: i = 123;break;
-		case 0x500D: i = 124;break;
-		case 0x500E: i = 125;break;
-		case 0x500F: i = 126;break;
-		case 0x5010: i = 127;break;
-		case 0x5011: i = 128;break;
-		case 0x5012: i = 129;break;
-		case 0x5013: i = 130;break;
-		case 0x5014: i = 131;break;
-		case 0x5015: i = 132;break;
-		case 0x5016: i = 133;break;
-		case 0x5017: i = 134;break;
-		case 0x5018: i = 135;break;
-		case 0x5019: i = 136;break;
-		case 0x501A: i = 137;break;
-		case 0x5100: i = 138;*callbacks = LEFT_MOTOR_CALLBACK_188_callbacks; break;
-		case 0x5101: i = 139;*callbacks = RIGHT_MOTOR_CALLBACK_189_callbacks; break;
-		case 0x5102: i = 140;*callbacks = HELIUM_VALVE_CALLBACK_182_callbacks; break;
-		case 0x5103: i = 141;*callbacks = REMOTE_CONTROL_SWITCH_204_callbacks; break;
-		case 0x5110: i = 142;*callbacks = EMCY_LOAD_804_callbacks; break;
-		case 0x5111: i = 143;*callbacks = EMCY_CONTROL_SURFACE_806_callbacks; break;
-		case 0x5112: i = 144;*callbacks = EMCY_TAIL_ELECTROMOTOR_807_callbacks; break;
-		case 0x5113: i = 145;*callbacks = EMCY_LEFT_MAIN_ENGINE_808_callbacks; break;
-		case 0x5114: i = 146;*callbacks = EMCY_RIGHT_MAIN_ENGINE_809_callbacks; break;
-		case 0x5115: i = 147;*callbacks = EMCY_LEFT_MAIN_ENGINE_SERVO_80A_callbacks; break;
-		case 0x5116: i = 148;*callbacks = EMCY_RIGHT_MAIN_ENGINE_SERVO_80B_callbacks; break;
-		case 0x5117: i = 149;*callbacks = EMCY_LEFT_BALLONET_80C_callbacks; break;
-		case 0x5118: i = 150;*callbacks = EMCY_RIGHT_BALLONET_80D_callbacks; break;
-		case 0x5119: i = 151;break;
+		case 0x1003: i = 2;*callbacks = actuators_Index1003_callbacks; break;
+		case 0x1005: i = 3;*callbacks = actuators_Index1005_callbacks; break;
+		case 0x1006: i = 4;*callbacks = actuators_Index1006_callbacks; break;
+		case 0x1014: i = 5;break;
+		case 0x1016: i = 6;break;
+		case 0x1017: i = 7;*callbacks = actuators_Index1017_callbacks; break;
+		case 0x1018: i = 8;break;
+		case 0x1280: i = 9;break;
+		case 0x1281: i = 10;break;
+		case 0x1282: i = 11;break;
+		case 0x1283: i = 12;break;
+		case 0x1284: i = 13;break;
+		case 0x1285: i = 14;break;
+		case 0x1286: i = 15;break;
+		case 0x1287: i = 16;break;
+		case 0x1288: i = 17;break;
+		case 0x1289: i = 18;break;
+		case 0x128A: i = 19;break;
+		case 0x128B: i = 20;break;
+		case 0x128C: i = 21;break;
+		case 0x128D: i = 22;break;
+		case 0x128E: i = 23;break;
+		case 0x1400: i = 24;*callbacks = actuators_Index1400_callbacks; break;
+		case 0x1401: i = 25;*callbacks = actuators_Index1401_callbacks; break;
+		case 0x1402: i = 26;break;
+		case 0x1403: i = 27;break;
+		case 0x1404: i = 28;break;
+		case 0x1405: i = 29;break;
+		case 0x1406: i = 30;break;
+		case 0x1407: i = 31;break;
+		case 0x1408: i = 32;break;
+		case 0x1409: i = 33;break;
+		case 0x140A: i = 34;break;
+		case 0x140B: i = 35;break;
+		case 0x140C: i = 36;break;
+		case 0x140D: i = 37;break;
+		case 0x1600: i = 38;*callbacks = actuators_Index1600_callbacks; break;
+		case 0x1601: i = 39;*callbacks = actuators_Index1601_callbacks; break;
+		case 0x1602: i = 40;break;
+		case 0x1603: i = 41;break;
+		case 0x1604: i = 42;break;
+		case 0x1605: i = 43;break;
+		case 0x1606: i = 44;break;
+		case 0x1607: i = 45;break;
+		case 0x1608: i = 46;break;
+		case 0x1609: i = 47;break;
+		case 0x160A: i = 48;break;
+		case 0x160B: i = 49;break;
+		case 0x160C: i = 50;break;
+		case 0x160D: i = 51;break;
+		case 0x1800: i = 52;*callbacks = actuators_Index1800_callbacks; break;
+		case 0x1801: i = 53;*callbacks = actuators_Index1801_callbacks; break;
+		case 0x1802: i = 54;*callbacks = actuators_Index1802_callbacks; break;
+		case 0x1803: i = 55;*callbacks = actuators_Index1803_callbacks; break;
+		case 0x1804: i = 56;*callbacks = actuators_Index1804_callbacks; break;
+		case 0x1805: i = 57;*callbacks = actuators_Index1805_callbacks; break;
+		case 0x1806: i = 58;*callbacks = actuators_Index1806_callbacks; break;
+		case 0x1807: i = 59;*callbacks = actuators_Index1807_callbacks; break;
+		case 0x1808: i = 60;*callbacks = actuators_Index1808_callbacks; break;
+		case 0x1809: i = 61;*callbacks = actuators_Index1809_callbacks; break;
+		case 0x180A: i = 62;*callbacks = actuators_Index180A_callbacks; break;
+		case 0x180B: i = 63;*callbacks = actuators_Index180B_callbacks; break;
+		case 0x180C: i = 64;*callbacks = actuators_Index180C_callbacks; break;
+		case 0x180D: i = 65;*callbacks = actuators_Index180D_callbacks; break;
+		case 0x180E: i = 66;*callbacks = actuators_Index180E_callbacks; break;
+		case 0x180F: i = 67;*callbacks = actuators_Index180F_callbacks; break;
+		case 0x1810: i = 68;*callbacks = actuators_Index1810_callbacks; break;
+		case 0x1811: i = 69;*callbacks = actuators_Index1811_callbacks; break;
+		case 0x1812: i = 70;*callbacks = actuators_Index1812_callbacks; break;
+		case 0x1813: i = 71;*callbacks = actuators_Index1813_callbacks; break;
+		case 0x1814: i = 72;*callbacks = actuators_Index1814_callbacks; break;
+		case 0x1815: i = 73;*callbacks = actuators_Index1815_callbacks; break;
+		case 0x1816: i = 74;*callbacks = actuators_Index1816_callbacks; break;
+		case 0x1817: i = 75;*callbacks = actuators_Index1817_callbacks; break;
+		case 0x1818: i = 76;*callbacks = actuators_Index1818_callbacks; break;
+		case 0x1819: i = 77;*callbacks = actuators_Index1819_callbacks; break;
+		case 0x181A: i = 78;*callbacks = actuators_Index181A_callbacks; break;
+		case 0x181B: i = 79;*callbacks = actuators_Index181B_callbacks; break;
+		case 0x181C: i = 80;*callbacks = actuators_Index181C_callbacks; break;
+		case 0x1A00: i = 81;break;
+		case 0x1A01: i = 82;break;
+		case 0x1A02: i = 83;break;
+		case 0x1A03: i = 84;break;
+		case 0x1A04: i = 85;break;
+		case 0x1A05: i = 86;break;
+		case 0x1A06: i = 87;break;
+		case 0x1A07: i = 88;break;
+		case 0x1A08: i = 89;break;
+		case 0x1A09: i = 90;break;
+		case 0x1A0A: i = 91;break;
+		case 0x1A0B: i = 92;break;
+		case 0x1A0C: i = 93;break;
+		case 0x1A0D: i = 94;break;
+		case 0x1A0E: i = 95;break;
+		case 0x1A0F: i = 96;break;
+		case 0x1A10: i = 97;break;
+		case 0x1A11: i = 98;break;
+		case 0x1A12: i = 99;break;
+		case 0x1A13: i = 100;break;
+		case 0x1A14: i = 101;break;
+		case 0x1A15: i = 102;break;
+		case 0x1A16: i = 103;break;
+		case 0x1A17: i = 104;break;
+		case 0x1A18: i = 105;break;
+		case 0x1A19: i = 106;break;
+		case 0x1A1A: i = 107;break;
+		case 0x1A1B: i = 108;break;
+		case 0x1A1C: i = 109;break;
+		case 0x5000: i = 110;*callbacks = LEFT_MOTOR_209_callbacks; break;
+		case 0x5001: i = 111;break;
+		case 0x5002: i = 112;break;
+		case 0x5003: i = 113;break;
+		case 0x5004: i = 114;break;
+		case 0x5005: i = 115;break;
+		case 0x5006: i = 116;break;
+		case 0x5007: i = 117;break;
+		case 0x5008: i = 118;break;
+		case 0x5009: i = 119;break;
+		case 0x500A: i = 120;break;
+		case 0x500B: i = 121;break;
+		case 0x500C: i = 122;break;
+		case 0x500D: i = 123;break;
+		case 0x500E: i = 124;break;
+		case 0x500F: i = 125;break;
+		case 0x5010: i = 126;break;
+		case 0x5011: i = 127;break;
+		case 0x5012: i = 128;break;
+		case 0x5013: i = 129;break;
+		case 0x5014: i = 130;break;
+		case 0x5015: i = 131;break;
+		case 0x5016: i = 132;break;
+		case 0x5017: i = 133;break;
+		case 0x5018: i = 134;break;
+		case 0x5019: i = 135;break;
+		case 0x501A: i = 136;break;
+		case 0x5100: i = 137;*callbacks = LEFT_MOTOR_CALLBACK_188_callbacks; break;
+		case 0x5101: i = 138;*callbacks = RIGHT_MOTOR_CALLBACK_189_callbacks; break;
+		case 0x5102: i = 139;*callbacks = HELIUM_VALVE_CALLBACK_182_callbacks; break;
+		case 0x5103: i = 140;*callbacks = REMOTE_CONTROL_SWITCH_204_callbacks; break;
+		case 0x5110: i = 141;*callbacks = EMCY_LOAD_804_callbacks; break;
+		case 0x5111: i = 142;*callbacks = EMCY_CONTROL_SURFACE_806_callbacks; break;
+		case 0x5112: i = 143;*callbacks = EMCY_TAIL_ELECTROMOTOR_807_callbacks; break;
+		case 0x5113: i = 144;*callbacks = EMCY_LEFT_MAIN_ENGINE_808_callbacks; break;
+		case 0x5114: i = 145;*callbacks = EMCY_RIGHT_MAIN_ENGINE_809_callbacks; break;
+		case 0x5115: i = 146;*callbacks = EMCY_LEFT_MAIN_ENGINE_SERVO_80A_callbacks; break;
+		case 0x5116: i = 147;*callbacks = EMCY_RIGHT_MAIN_ENGINE_SERVO_80B_callbacks; break;
+		case 0x5117: i = 148;*callbacks = EMCY_LEFT_BALLONET_80C_callbacks; break;
+		case 0x5118: i = 149;*callbacks = EMCY_RIGHT_BALLONET_80D_callbacks; break;
+		case 0x5119: i = 150;break;
+		case 0x5180: i = 151;break;
+		case 0x5181: i = 152;break;
 		default:
 			*errorCode = OD_NO_SUCH_OBJECT;
 			return NULL;
@@ -2703,24 +2714,24 @@ const indextable * actuators_scanIndexOD (UNS16 wIndex, UNS32 * errorCode, ODCal
  * Even if no pdoTransmit are defined, at least one entry is computed
  * for compilations issues.
  */
-s_PDO_status actuators_PDO_status[27] = {s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer};
+s_PDO_status actuators_PDO_status[29] = {s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer,s_PDO_status_Initializer};
 
 const quick_index actuators_firstIndex = {
   0, /* SDO_SVR */
-  8, /* SDO_CLT */
-  23, /* PDO_RCV */
-  40, /* PDO_RCV_MAP */
-  57, /* PDO_TRS */
-  84 /* PDO_TRS_MAP */
+  9, /* SDO_CLT */
+  24, /* PDO_RCV */
+  38, /* PDO_RCV_MAP */
+  52, /* PDO_TRS */
+  81 /* PDO_TRS_MAP */
 };
 
 const quick_index actuators_lastIndex = {
   0, /* SDO_SVR */
-  22, /* SDO_CLT */
-  39, /* PDO_RCV */
-  56, /* PDO_RCV_MAP */
-  83, /* PDO_TRS */
-  110 /* PDO_TRS_MAP */
+  23, /* SDO_CLT */
+  37, /* PDO_RCV */
+  51, /* PDO_RCV_MAP */
+  80, /* PDO_TRS */
+  109 /* PDO_TRS_MAP */
 };
 
 const UNS16 actuators_ObjdictSize = sizeof(actuators_objdict)/sizeof(actuators_objdict[0]); 

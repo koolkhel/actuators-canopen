@@ -363,6 +363,8 @@ void server_loop(int client_socket) {
 	reset_matlab_feedback();
 }
 
+extern sig_atomic_t exit_flag;
+
 void *matlab_main(void *data) {
 	int result = 0;
 	int optval = 1;
@@ -380,7 +382,7 @@ void *matlab_main(void *data) {
 	pipe_read_fd = pipe_fds[0];
 	pipe_write_fd = pipe_fds[1];
 
-	while (true) {
+	while (!exit_flag) {
 		if (matlab_listen_socket != 0)
 			close(matlab_listen_socket);
 
@@ -422,6 +424,7 @@ void *matlab_main(void *data) {
 			unsigned int client_addr_len;
 			memset(&client_addr, 0, sizeof(client_addr));
 			int client_socket = -1;
+			client_addr_len = sizeof(client_addr);
 
 			client_socket = accept(matlab_listen_socket, (sockaddr *) &client_addr, &client_addr_len);
 			if (client_socket == -1) {

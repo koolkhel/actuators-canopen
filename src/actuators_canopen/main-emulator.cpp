@@ -88,6 +88,8 @@ int main(int argc, char **argv) {
 	/* Start Timer thread */
 	StartTimerLoop(&Init);
 
+	heartbeatInit(&emulator_Data);
+
 	my_sleep(1);
 
 	setState(&emulator_Data, Pre_operational);

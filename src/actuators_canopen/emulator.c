@@ -478,7 +478,7 @@ $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
                     UNS32 emulator_obj1016[]={0};
 
 /* index 0x1017 :   Producer Heartbeat Time. */
-                    UNS16 emulator_obj1017 = 0x0;	/* 0 */
+                    UNS16 emulator_obj1017 = 0x64;	/* 100 */
                     ODCallback_t emulator_Index1017_callbacks[] = 
                      {
                        NULL,
