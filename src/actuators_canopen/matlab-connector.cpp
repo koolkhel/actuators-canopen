@@ -173,21 +173,21 @@ int proto_parse_line(struct actuators_model *model, const char *line)
 	if (result == 0) {
 		result = sscanf(line, "left_main_engine_aux_fuel_level %f", &model->left_main_engine_aux_fuel_level);
 		if (result) {
-			notify_ros_topic(0x4008, 0x20);
+			notify_ros_topic(0x4000 + 0x8, 0x20);
 			enable_matlab_feedback(0x8);
 		}
 	}
 	if (result == 0) {
 		result = sscanf(line, "left_main_engine_throttle_1_angle %f", &model->left_main_engine_throttle_1_angle);
 		if (result) {
-			notify_ros_topic(0x4008, 0x20);
+			notify_ros_topic(0x4000 + 0x8, 0x20);
 			enable_matlab_feedback(0x8);
 		}
 	}
 	if (result == 0) {
 		result = sscanf(line, "left_main_engine_throttle_2_angle %f", &model->left_main_engine_throttle_2_angle);
 		if (result) {
-			notify_ros_topic(0x4008, 0x20);
+			notify_ros_topic(0x4000 + 0x8, 0x20);
 			enable_matlab_feedback(0x8);
 		}
 	}
@@ -201,7 +201,7 @@ int proto_parse_line(struct actuators_model *model, const char *line)
 	if (result == 0) {
 		result = sscanf(line, "right_main_engine_fuel_level %f", &model->right_main_engine_fuel_level);
 		if (result) {
-			notify_ros_topic(0x4009, 0x20);
+			notify_ros_topic(0x4000 + 0x9, 0x20);
 			enable_matlab_feedback(0x9);
 		}
 	}
@@ -228,14 +228,47 @@ int proto_parse_line(struct actuators_model *model, const char *line)
 		result = sscanf(line, "left_main_engine_rotation_angle %f", &model->left_main_engine_rotation_angle);
 		if (result) {
 			notify_ros_topic(0x400a, 0x20);
-			enable_matlab_feedback(0x9);
+			enable_matlab_feedback(0xa);
 		}
 	}
 	if (result == 0) {
 		result = sscanf(line, "right_main_engine_rotation_angle %f", &model->right_main_engine_rotation_angle);
 		if (result) {
 			notify_ros_topic(0x400b, 0x20);
-			enable_matlab_feedback(0x9);
+			enable_matlab_feedback(0xb);
+		}
+	}
+
+	// 0.01 degree
+	if (result == 0) {
+		result = sscanf(line, "left_control_surface_X %f", &model->left_control_surface_X);
+		if (result) {
+			notify_ros_topic(0x4006, 0x20);
+			enable_matlab_feedback(0x6);
+		}
+	}
+
+	if (result == 0) {
+		result = sscanf(line, "left_control_surface_Y %f", &model->left_control_surface_Y);
+		if (result) {
+			notify_ros_topic(0x4006, 0x20);
+			enable_matlab_feedback(0x6);
+		}
+	}
+
+	if (result == 0) {
+		result = sscanf(line, "right_control_surface_X %f", &model->right_control_surface_X);
+		if (result) {
+			notify_ros_topic(0x4006, 0x20);
+			enable_matlab_feedback(0x6);
+		}
+	}
+
+	if (result == 0) {
+		result = sscanf(line, "right_control_surface_Y %f", &model->right_control_surface_Y);
+		if (result) {
+			notify_ros_topic(0x4006, 0x20);
+			enable_matlab_feedback(0x6);
 		}
 	}
 

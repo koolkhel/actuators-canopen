@@ -58,6 +58,7 @@ TIMER_HANDLE SetAlarm(CO_Data* d, UNS32 id, TimerCallback_t callback, TIMEVAL va
 {
 	TIMER_HANDLE row_number;
 	s_timer_entry *row;
+	//printf("SetAlarm %u value %llu\n", id, value);
 
 	/* in order to decide new timer setting we have to run over all timer rows */
 	for(row_number=0, row=timers; row_number <= last_timer_raw + 1 && row_number < MAX_NB_TIMER; row_number++, row++)

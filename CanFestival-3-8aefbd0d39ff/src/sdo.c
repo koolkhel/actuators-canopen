@@ -732,7 +732,7 @@ UNS8 sendSDOabort (CO_Data* d, UNS8 whoami, UNS8 CliServNbr, UNS16 index, UNS8 s
 	data[5] = (UNS8)((abortCode >> 8) & 0xFF);
 	data[6] = (UNS8)((abortCode >> 16) & 0xFF);
 	data[7] = (UNS8)((abortCode >> 24) & 0xFF);
-	ret = sendSDO(d, whoami, CliServNbr, data);
+//	ret = sendSDO(d, whoami, CliServNbr, data);
 
 	return ret;
 }

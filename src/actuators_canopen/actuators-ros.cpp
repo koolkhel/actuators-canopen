@@ -42,6 +42,7 @@
 
 #include "actuators/SetControlSurface.h"
 #include "actuators/ControlSurfaceState.h"
+#include "actuators/ControlSurface.h"
 
 #include "actuators/SetRemoteControlAllow.h"
 #include "actuators/RemoteControlState.h"
@@ -721,9 +722,25 @@ bool set_power_relay(actuators::SetPowerRelayRequest &request, actuators::SetPow
 }
 
 static ros::Publisher motorControlPublisher;
+static ros::Publisher setControlSurfacePublisher;
+
+void reportControlSurface(actuators::SetControlSurfaceRequest &req) {
+	actuators::ControlSurface state;
+
+	state.header.stamp = ros::Time::now();
+
+	state.angle_X = req.angle_X;
+	state.angle_Y = req.angle_Y;
+
+	setControlSurfacePublisher.publish(state);
+
+	QUEUE_MATLAB_NOTIFY_VAR(req.angle_X, "control_surface_angle_X %f");
+	QUEUE_MATLAB_NOTIFY_VAR(req.angle_Y, "control_surface_angle_Y %f");
+}
 
 void reportMotorsControl(actuators::SetMotorsControlRequest &req) {
 	actuators::MotorsControl state;
+
 	state.left_electromotor_rate = req.left_electromotor_rate;
 	state.left_electromotors_servo_anglex = req.left_electromotors_servo_anglex;
 	state.left_electromotors_servo_angley = req.left_electromotors_servo_angley;
@@ -831,6 +848,8 @@ bool set_control_surface(actuators::SetControlSurfaceRequest &request, actuators
 	result = writeLocalDict(&actuators_Data, 0x501A, 0x0, &command.data, &size, 0);
 
 	enqueue_PDO(0x1A);
+
+	reportControlSurface(request);
 
 	return true;
 }
@@ -1554,6 +1573,7 @@ void *ros_main(void *data) {
 	electromotorsStateExtPublisher = nh.advertise<actuators::ElectromotorsStateExt>("/electromotors_state_ext", 10);
 
 	motorControlPublisher = nh.advertise<actuators::MotorsControl>("/motors_control", 10);
+	setControlSurfacePublisher = nh.advertise<actuators::ControlSurface>("/control_surface", 10);
 
 	remoteControlStatePublisher = nh.advertise<actuators::RemoteControlState>("/remote_control_state", 10);
 

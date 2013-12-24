@@ -124,9 +124,9 @@ UNS8 canSend(CAN_PORT port, Message *m)
 {
 	if(port){
 		UNS8 res;
-	        LeaveMutex();
+	        //LeaveMutex();
 		res = DLL_CALL(canSend)(((CANPort*)port)->fd, m);
-		EnterMutex();
+		//EnterMutex();
 		return res; // OK
 	}
 	return 1; // NOT OK

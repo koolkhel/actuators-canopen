@@ -29,7 +29,7 @@ canfestival-objs := $(OBJS)
 else
 # Normal Makefile
 CC = gcc
-PROG_CFLAGS =  -DDEBUG_WAR_CONSOLE_ON -DDEBUG_ERR_CONSOLE_ON -DDEBUG_MSG_CONSOLE_ON -g
+PROG_CFLAGS = 
 OS_NAME = Linux
 ARCH_NAME = x86
 PREFIX = /usr/local

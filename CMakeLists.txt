@@ -33,13 +33,14 @@ rosbuild_add_executable(actuators
 	src/actuators_canopen/main-actuators.cpp
 	src/actuators_canopen/actuators-ros.cpp
 	src/actuators_canopen/canopen-util.cpp
-	src/actuators_canopen/matlab-connector.cpp)
-rosbuild_add_executable(emulator 
-	src/actuators_canopen/main-emulator.cpp
-	src/actuators_canopen/canopen-util.cpp
-	src/actuators_canopen/emulator.c)
-
-set_target_properties(actuators PROPERTIES COMPILE_FLAGS "-falign-functions=8")
+	src/actuators_canopen/matlab-connector.cpp
+	)
+#rosbuild_add_executable(emulator 
+#	src/actuators_canopen/main-emulator.cpp
+#	src/actuators_canopen/canopen-util.cpp
+#	src/actuators_canopen/emulator.c)
+set_target_properties(actuators PROPERTIES COMPILE_FLAGS " -falign-functions=8 -fsplit-stack -fstack-check --param ssp-buffer-size=8192")
+#set_target_properties(actuators PROPERTIES COMPILE_FLAGS " -falign-functions=8 -fsplit-stack -fconserve-stack")
 target_link_libraries(actuators canlib rt canfestival canfestival_unix dl rt)
-target_link_libraries(emulator canlib rt canfestival canfestival_unix dl rt)
+#arget_link_libraries(emulator canlib rt canfestival canfestival_unix dl rt)
 #target_link_libraries(emulator canlib rt)

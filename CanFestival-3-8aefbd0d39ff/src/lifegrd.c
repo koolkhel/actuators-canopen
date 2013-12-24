@@ -67,7 +67,11 @@ e_nodeState getNodeState (CO_Data* d, UNS8 nodeId)
 void ConsumerHeartbeatAlarm(CO_Data* d, UNS32 id)
 {
   UNS8 nodeId = (UNS8)(((d->ConsumerHeartbeatEntries[id]) & (UNS32)0x00FF0000) >> (UNS8)16);
-  /*MSG_WAR(0x00, "ConsumerHearbeatAlarm", 0x00);*/
+      struct timeval tv;
+          gettimeofday(&tv, NULL);
+
+  //MSG_WAR(0x00, "ConsumerHearbeatAlarm", 0x00);
+//  printf("%ld.%ld timer timeout for node %hhx\n", tv.tv_sec, tv.tv_usec, nodeId);
 
   /* timer have been notified and is now free (non periodic)*/
   /* -> avoid deleting re-assigned timer if message is received too late*/
@@ -82,6 +86,10 @@ void ConsumerHeartbeatAlarm(CO_Data* d, UNS32 id)
 void proceedNODE_GUARD(CO_Data* d, Message* m )
 {
   UNS8 nodeId = (UNS8) GET_NODE_ID((*m));
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+
+  printf("GOT NODE GUARD from NODE %hhx\n", nodeId);
 
   if((m->rtr == 1) )
     /*!
@@ -157,6 +165,9 @@ void proceedNODE_GUARD(CO_Data* d, Message* m )
                 /* Renew alarm for next heartbeat. */
                 DelAlarm(d->ConsumerHeartBeatTimers[index]);
                 d->ConsumerHeartBeatTimers[index] = SetAlarm(d, index, &ConsumerHeartbeatAlarm, MS_TO_TIMEVAL(time), 0);
+
+		// printf("%ld.%ld node id %hhx timer aimed for %llu\n", tv.tv_sec, tv.tv_usec, ConsumerHeartBeat_nodeId, MS_TO_TIMEVAL(time));
+		(*d->heartbeatError)(d, nodeId);
               }
           }
       }

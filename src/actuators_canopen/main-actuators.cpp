@@ -1243,7 +1243,7 @@ void CANopen_shutdown(void) {
 
 void init_model() {
 	memset(&MODEL, 0, sizeof(MODEL));
-	MODEL.remote_control_enabled = 1; // enable remote control by default
+	MODEL.remote_control_allowed_state = 1; // enable remote control by default
 
 	pthread_mutexattr_t attr;
 	pthread_mutexattr_init(&attr);
